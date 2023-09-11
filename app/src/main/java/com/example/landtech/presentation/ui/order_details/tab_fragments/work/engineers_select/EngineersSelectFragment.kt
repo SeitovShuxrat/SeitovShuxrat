@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -16,9 +17,7 @@ class EngineersSelectFragment : Fragment() {
     private val viewModel: OrderDetailsViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         binding = FragmentEngineersSelectBinding.inflate(inflater, container, false)
         return binding.root
@@ -30,7 +29,10 @@ class EngineersSelectFragment : Fragment() {
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             val adapter = EngineersSelectListAdapter(EngineersSelectListAdapter.OnClickListener {
-                viewModel.setEngineer(it)
+//                viewModel.setEngineer(it)
+                Toast.makeText(
+                    requireContext(), "Инженер добавлен в список!", Toast.LENGTH_LONG
+                ).show()
                 findNavController().navigateUp()
             })
             engineersRecyclerView.adapter = adapter

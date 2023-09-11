@@ -2,6 +2,9 @@ package com.example.landtech.presentation.ui.order_details
 
 import android.location.Location
 import android.net.Uri
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.databinding.adapters.TextViewBindingAdapter.AfterTextChanged
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -19,6 +22,18 @@ class OrderDetailsViewModel : ViewModel() {
     private val _services = MutableLiveData<List<ServiceItem>>(listOf())
     val services: LiveData<List<ServiceItem>> get() = _services
     private val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+
+    val quickReportTextWatcher = getTextWatcher {
+        _order.value?.quickReport = it
+    }
+
+    val problemDescTextWatcher = getTextWatcher {
+        _order.value?.problemDescription = it
+    }
+
+    val workDescTextWatcher = getTextWatcher {
+        _order.value?.workDescription = it
+    }
 
     fun setOrder(order: Order) {
         _order.value = order
@@ -118,6 +133,25 @@ class OrderDetailsViewModel : ViewModel() {
         _order.value?.apply {
             engineer = newEngineer
             _order.postValue(this)
+        }
+    }
+
+    fun setAutoDriveTime(value: Double?) {
+        if (value == null) return
+
+        _order.value?.apply {
+            driveTime = value
+            _order.postValue(this)
+        }
+    }
+
+    private fun getTextWatcher(afterTextChanged: (String) -> Unit): TextWatcher {
+        return object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable) {
+                afterTextChanged(s.toString())
+            }
         }
     }
 }

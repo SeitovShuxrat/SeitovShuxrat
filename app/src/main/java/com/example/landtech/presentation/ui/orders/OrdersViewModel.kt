@@ -3,6 +3,10 @@ package com.example.landtech.presentation.ui.orders
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.landtech.data.database.models.Order
+import com.example.landtech.data.database.models.ReceivedPartsItem
+import com.example.landtech.data.database.models.ReturnedPartsItem
+import com.example.landtech.data.database.models.ServiceItem
+import com.example.landtech.data.database.models.UsedPartsItem
 
 class OrdersViewModel : ViewModel() {
 
@@ -24,7 +28,9 @@ class OrdersViewModel : ViewModel() {
                 en = "121232323",
                 driveTime = 123.0,
                 typeOrder = "Ремонт с запчастями",
-                status = "Новый"
+                status = "Новый",
+                problemDescription = "Большая проблема",
+                workDescription = "Много работы"
             ),
             Order(
                 number = "AC-00000002",
@@ -39,7 +45,9 @@ class OrdersViewModel : ViewModel() {
                 en = "4332323",
                 driveTime = 323.0,
                 typeOrder = "Произвольное обслуживание",
-                status = "Новый"
+                status = "Новый",
+                problemDescription = "Маленькая проблема",
+                workDescription = "Много работы"
             ),
             Order(
                 number = "AC-00000003",
@@ -86,6 +94,68 @@ class OrdersViewModel : ViewModel() {
             Order(number = "AC-00000007", date = "11.04.2023", client = "Andreas Iniesta"),
         )
 
+        addListItems(orderList[0])
+        addListItems(orderList[1])
+
         _orders.value = orderList
+    }
+
+    private fun addListItems(order: Order) {
+        order.services.add(
+            ServiceItem(
+                workType = order.workType,
+                engineer = order.engineer,
+                measureUnit = "км",
+            )
+        )
+
+        order.services.add(
+            ServiceItem(
+                workType = order.workType,
+                engineer = order.engineer,
+                measureUnit = "ч",
+            )
+        )
+
+        order.usedParts.add(
+            UsedPartsItem(
+                clientUhm = "Клиент",
+                quantity = 4.00
+            )
+        )
+
+        order.usedParts.add(
+            UsedPartsItem(
+                clientUhm = "UHM склад",
+                code = "00000001",
+                name = "Запчасть 1",
+                number = "12132321",
+                quantity = 3.00
+            )
+        )
+
+        order.receivedParts.add(
+            ReceivedPartsItem(
+                warehouse = "Основной склад",
+                code = "00000001",
+                name = "Запчасть 1",
+                number = "12132321",
+                date = "10.09.2023",
+                needed = 4.0,
+                inTransit = 4.0
+            )
+        )
+
+        order.returnedParts.add(
+            ReturnedPartsItem(
+                warehouse = "Основной склад",
+                code = "00000001",
+                name = "Запчасть 1",
+                number = "12132321",
+                date = "05.09.2023",
+                returned = 2.0,
+                received = 2.0
+            )
+        )
     }
 }

@@ -5,6 +5,9 @@
 
     <data>
 
+        <variable
+            name="viewModel"
+            type="com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -13,11 +16,12 @@
 
         <LinearLayout
             android:id="@+id/linearLayout8"
-            android:layout_width="1264dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:background="@color/light_grey"
             android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/textView3"
             app:layout_constraintTop_toBottomOf="@+id/textView3">
 
@@ -161,8 +165,8 @@
             android:text="Возвращённые на склад"
             android:textColor="@color/black"
             android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@+id/recyclerView"
-            app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+            app:layout_constraintStart_toStartOf="@+id/receivedPartsRecyclerView"
+            app:layout_constraintTop_toBottomOf="@+id/receivedPartsRecyclerView" />
 
         <LinearLayout
             android:id="@+id/linearLayout7"
@@ -331,21 +335,29 @@
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+            android:id="@+id/receivedPartsRecyclerView"
             android:layout_width="0dp"
             android:layout_height="200dp"
-            android:layout_marginTop="1dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintEnd_toEndOf="@+id/linearLayout7"
             app:layout_constraintStart_toStartOf="@+id/linearLayout7"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout7" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout7"
+            app:receivedPartsData="@{ viewModel.order.receivedParts }"
+            tools:itemCount="16"
+            tools:listitem="@layout/received_parts_item" />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/returnedPartsRecyclerView"
             android:layout_width="0dp"
             android:layout_height="200dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintEnd_toEndOf="@+id/linearLayout8"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/linearLayout8"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout8" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout8"
+            app:returnedPartsData="@{ viewModel.order.returnedParts }"
+            tools:itemCount="16"
+            tools:listitem="@layout/returned_parts_item" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

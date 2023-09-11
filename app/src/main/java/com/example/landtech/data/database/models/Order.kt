@@ -25,16 +25,23 @@ data class Order(
     val sn: String = "",
     val ln: String = "",
     val en: String = "",
-    val driveTime: Double = 0.0,
+    var driveTime: Double = 0.0,
     var driveStartDate: String = "",
     var driveEndDate: String = "",
     var typeOrder: String = "",
     var status: String = "",
-    val services: MutableList<ServiceItem> = mutableListOf(),
     var workStartDate: String = "",
     var workEndDate: String = "",
     var tripEndDate: String = "",
     var tripEndLat: Double = 0.0,
     var tripEndLng: Double = 0.0,
-    var imageUri: Uri? = null
-) : Parcelable
+    var imageUri: Uri? = null,
+    var problemDescription: String = "",
+    var workDescription: String = "",
+    var quickReport: String = "",
+    val services: MutableList<ServiceItem> = mutableListOf(),
+    val usedParts: MutableList<UsedPartsItem> = mutableListOf(),
+    val receivedParts: MutableList<ReceivedPartsItem> = mutableListOf(),
+    val returnedParts: MutableList<ReturnedPartsItem> = mutableListOf(),
+
+    ) : Parcelable
