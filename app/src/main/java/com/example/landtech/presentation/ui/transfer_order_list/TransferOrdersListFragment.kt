@@ -1,0 +1,47 @@
+package com.example.landtech.presentation.ui.transfer_order_list
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import com.example.landtech.databinding.FragmentTransferOrdersListBinding
+import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
+
+class TransferOrdersListFragment : Fragment() {
+
+    private val viewModel: OrderDetailsViewModel by activityViewModels()
+    private lateinit var binding: FragmentTransferOrdersListBinding
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentTransferOrdersListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.getTransferOrderListForSelection()
+
+        binding.apply {
+            lifecycleOwner = viewLifecycleOwner
+
+            val adapter = TransferOrdersListAdapter(TransferOrdersListAdapter.OnClickListener {
+                viewModel.addTransferOrder(it)
+                findNavController().navigateUp()
+            })
+            transferOrdersRecyclerView.adapter = adapter
+
+            this@TransferOrdersListFragment.viewModel.transferOrdersForSelection.observe(
+                viewLifecycleOwner
+            ) {
+                adapter.submitList(it)
+            }
+        }
+    }
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sign="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.kyanogen.signatureview.SignatureView
+            android:id="@+id/signature_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            sign:backgroundColor="#ffffff"
+            sign:enableSignature="true"
+            sign:layout_constraintBottom_toBottomOf="parent"
+            sign:layout_constraintEnd_toEndOf="parent"
+            sign:layout_constraintStart_toStartOf="parent"
+            sign:layout_constraintTop_toTopOf="parent"
+            sign:penColor="#000000"
+            sign:penSize="5dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            sign:layout_constraintBottom_toBottomOf="parent"
+            sign:layout_constraintEnd_toEndOf="parent"
+            sign:layout_constraintStart_toStartOf="parent">
+
+            <Button
+                android:id="@+id/clearBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Очистить" />
+
+            <CheckBox
+                android:id="@+id/clientRejectedToSign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Отказ от подписи" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

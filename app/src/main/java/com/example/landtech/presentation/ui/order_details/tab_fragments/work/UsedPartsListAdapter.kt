@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.landtech.data.database.models.UsedPartsItem
+import com.example.landtech.domain.models.UsedPartsItem
 import com.example.landtech.databinding.UsedSparePartsItemBinding
 
 

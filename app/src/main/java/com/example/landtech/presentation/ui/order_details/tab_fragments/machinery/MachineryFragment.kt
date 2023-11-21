@@ -8,7 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.landtech.databinding.FragmentMachineryBinding
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MachineryFragment : Fragment() {
     private val viewModel: OrderDetailsViewModel by activityViewModels()
     private lateinit var binding: FragmentMachineryBinding

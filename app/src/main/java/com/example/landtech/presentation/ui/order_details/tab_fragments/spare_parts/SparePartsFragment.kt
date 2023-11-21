@@ -6,9 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.example.landtech.databinding.FragmentSparePartsBinding
+import com.example.landtech.presentation.ui.order_details.OrderDetailsFragmentDirections
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SparePartsFragment : Fragment() {
     private lateinit var binding: FragmentSparePartsBinding
     private val viewModel: OrderDetailsViewModel by activityViewModels()
@@ -27,8 +31,27 @@ class SparePartsFragment : Fragment() {
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@SparePartsFragment.viewModel
-            receivedPartsRecyclerView.adapter = ReceivedPartsListAdapter()
-            returnedPartsRecyclerView.adapter = ReturnedPartsListAdapter()
+            receivedPartsRecyclerView.adapter = ReceivedPartsListAdapter {
+                this@SparePartsFragment.viewModel.setModified(true)
+            }
+
+            val returnedPartsAdapter =
+                ReturnedPartsListAdapter(
+                    onReturnedQuantityChanged = { item, quantity ->
+                        this@SparePartsFragment.viewModel.setReturnedItemQuantity(item, quantity)
+                    },
+                    onDeleteClickListener = {
+                        this@SparePartsFragment.viewModel.deleteReturnedSparePart(it)
+                    })
+            returnedPartsRecyclerView.adapter = returnedPartsAdapter
+
+            addReturnPart.setOnClickListener {
+                findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToSelectReceivedPartFragment())
+            }
+
+            createTransferDocs.setOnClickListener {
+                findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToTransferOrdersListFragment())
+            }
         }
     }
 }

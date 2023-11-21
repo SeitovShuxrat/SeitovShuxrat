@@ -5,7 +5,7 @@
 
         <variable
             name="order"
-            type="com.example.landtech.data.database.models.Order" />
+            type="com.example.landtech.domain.models.Order" />
     </data>
 
     <LinearLayout

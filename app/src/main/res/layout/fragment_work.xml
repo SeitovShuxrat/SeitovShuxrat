@@ -18,6 +18,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <TextView
+                android:id="@+id/addUsedPart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/teal_700"
+                android:text="Добавить"
+                android:textColor="@color/teal_700"
+                android:textSize="16sp"
+                app:drawableStartCompat="@drawable/plus_icon"
+                app:layout_constraintBottom_toBottomOf="@+id/textView8"
+                app:layout_constraintStart_toEndOf="@+id/textView8"
+                app:layout_constraintTop_toTopOf="@+id/textView8" />
+
             <LinearLayout
                 android:id="@+id/ordersListTop"
                 android:layout_width="0dp"
@@ -138,7 +153,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/servicesRecyclerView" />
 
             <Button
-                android:id="@+id/startTripBtn2"
+                android:id="@+id/createGuaranteeOrder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -149,16 +164,16 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView11" />
 
             <Button
-                android:id="@+id/startTripBtn3"
+                android:id="@+id/workNotGuaranteed"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:backgroundTint="@color/yellow"
                 android:text="Работы не гарантийные"
                 android:textColor="@color/pink_text"
-                app:layout_constraintEnd_toEndOf="@+id/startTripBtn2"
-                app:layout_constraintStart_toStartOf="@+id/startTripBtn2"
-                app:layout_constraintTop_toBottomOf="@+id/startTripBtn2" />
+                app:layout_constraintEnd_toEndOf="@+id/createGuaranteeOrder"
+                app:layout_constraintStart_toStartOf="@+id/createGuaranteeOrder"
+                app:layout_constraintTop_toBottomOf="@+id/createGuaranteeOrder" />
 
             <TextView
                 android:id="@+id/voiceDefinitionBtn"
@@ -370,7 +385,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="32dp"
-                android:text="Гарантийность работа:"
+                android:text="Гарантийность работ:"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -384,8 +399,8 @@
                 android:text="Обслуживание"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                app:layout_constraintStart_toStartOf="@+id/startTripBtn3"
-                app:layout_constraintTop_toBottomOf="@+id/startTripBtn3" />
+                app:layout_constraintStart_toStartOf="@+id/workNotGuaranteed"
+                app:layout_constraintTop_toBottomOf="@+id/workNotGuaranteed" />
 
             <LinearLayout
                 android:id="@+id/linearLayout7"
@@ -557,7 +572,7 @@
                 app:layout_constraintEnd_toEndOf="@+id/ordersListTop"
                 app:layout_constraintStart_toStartOf="@+id/ordersListTop"
                 app:layout_constraintTop_toBottomOf="@+id/ordersListTop"
-                app:usedSparePartsData = "@{ viewModel.order.usedParts }"
+                app:usedPartsListData="@{ viewModel.usedParts }"
                 tools:itemCount="16"
                 tools:listitem="@layout/used_spare_parts_item" />
 

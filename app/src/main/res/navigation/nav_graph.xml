@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/ordersFragment">
+    app:startDestination="@id/loginFragment">
 
     <fragment
         android:id="@+id/ordersFragment"
@@ -11,21 +11,99 @@
         <action
             android:id="@+id/action_ordersFragment_to_orderDetailsFragment"
             app:destination="@id/orderDetailsFragment" />
+        <action
+            android:id="@+id/action_ordersFragment_to_selectSparePartFragment"
+            app:destination="@id/selectSparePartFragment" />
     </fragment>
     <fragment
         android:id="@+id/orderDetailsFragment"
         android:name="com.example.landtech.presentation.ui.order_details.OrderDetailsFragment"
-        android:label="OrderDetailsFragment" >
+        android:label="Детали заказа">
         <argument
             android:name="order"
-            app:argType="com.example.landtech.data.database.models.Order" />
+            app:argType="com.example.landtech.domain.models.Order" />
         <action
             android:id="@+id/action_orderDetailsFragment_to_engineersSelectFragment"
             app:destination="@id/engineersSelectFragment"
             app:popUpTo="@id/orderDetailsFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_signatureFragment"
+            app:destination="@id/signatureFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_exploitationObjectSelectFragment"
+            app:destination="@id/exploitationObjectSelectFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_usedPartAddFragment"
+            app:destination="@id/usedPartAddFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_addSparePartsListFragment"
+            app:destination="@id/addSparePartsListFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_selectReceivedPartFragment"
+            app:destination="@id/selectReceivedPartFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_transferOrdersListFragment"
+            app:destination="@id/transferOrdersListFragment" />
     </fragment>
     <fragment
         android:id="@+id/engineersSelectFragment"
-        android:name="com.example.landtech.presentation.ui.order_details.tab_fragments.work.engineers_select.EngineersSelectFragment"
-        android:label="EngineersSelectFragment" />
+        android:name="com.example.landtech.presentation.ui.engineers_select.EngineersSelectFragment"
+        android:label="Выберите инженера" />
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.landtech.presentation.ui.login.LoginFragment"
+        android:label="LoginFragment" >
+        <action
+            android:id="@+id/action_loginFragment_to_ordersFragment"
+            app:destination="@id/ordersFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/signatureFragment"
+        android:name="com.example.landtech.presentation.ui.signature_screen.SignatureFragment"
+        android:label="Подпись" />
+    <fragment
+        android:id="@+id/exploitationObjectSelectFragment"
+        android:name="com.example.landtech.presentation.ui.select_exploitation_object.ExploitationObjectSelectFragment"
+        android:label="Выберите объект эксплуатации" />
+    <fragment
+        android:id="@+id/usedPartAddFragment"
+        android:name="com.example.landtech.presentation.ui.used_parts_add.UsedPartAddFragment"
+        android:label="Детали з/ч">
+        <action
+            android:id="@+id/action_usedPartAddFragment_to_selectSparePartFragment"
+            app:destination="@id/selectSparePartFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/selectSparePartFragment"
+        android:name="com.example.landtech.presentation.ui.select_spare_part.SelectSparePartFragment"
+        android:label="Остатки з/ч" />
+    <fragment
+        android:id="@+id/addSparePartsListFragment"
+        android:name="com.example.landtech.presentation.ui.add_spare_parts_list.AddSparePartsListFragment"
+        android:label="Добавление з/ч">
+        <argument
+            android:name="isDiagnose"
+            app:argType="boolean" />
+        <action
+            android:id="@+id/action_addSparePartsListFragment_to_addSparePartDetailFragment"
+            app:destination="@id/addSparePartDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addSparePartDetailFragment"
+        android:name="com.example.landtech.presentation.ui.add_spare_part_detail.AddSparePartDetailFragment"
+        android:label="Детали з/ч">
+        <action
+            android:id="@+id/action_addSparePartDetailFragment_to_selectSparePartFragment"
+            app:destination="@id/selectSparePartFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/selectReceivedPartFragment"
+        android:name="com.example.landtech.presentation.ui.select_received_part.SelectReceivedPartFragment"
+        android:label="Выберите з/ч" />
+    <fragment
+        android:id="@+id/transferOrdersListFragment"
+        android:name="com.example.landtech.presentation.ui.transfer_order_list.TransferOrdersListFragment"
+        android:label="TransferOrdersListFragment" />
 </navigation>

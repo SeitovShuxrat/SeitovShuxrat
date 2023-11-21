@@ -1,4 +1,4 @@
-package com.example.landtech.presentation.ui.order_details.tab_fragments.work.engineers_select
+package com.example.landtech.presentation.ui.engineers_select
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,14 +6,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landtech.databinding.EngineersSelectItemBinding
+import com.example.landtech.domain.models.Engineer
 
 class EngineersSelectListAdapter(private val onClickListener: OnClickListener) :
-    ListAdapter<String, EngineersSelectListAdapter.VH>(
-        object : DiffUtil.ItemCallback<String>() {
-            override fun areItemsTheSame(oldItem: String, newItem: String) =
-                oldItem == newItem
+    ListAdapter<Engineer, EngineersSelectListAdapter.VH>(
+        object : DiffUtil.ItemCallback<Engineer>() {
+            override fun areItemsTheSame(oldItem: Engineer, newItem: Engineer) =
+                oldItem.id == newItem.id
 
-            override fun areContentsTheSame(oldItem: String, newItem: String) =
+            override fun areContentsTheSame(oldItem: Engineer, newItem: Engineer) =
                 oldItem == newItem
         }
     ) {
@@ -31,7 +32,7 @@ class EngineersSelectListAdapter(private val onClickListener: OnClickListener) :
     class VH(private val binding: EngineersSelectItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: String, onClickListener: OnClickListener) {
+        fun bind(item: Engineer, onClickListener: OnClickListener) {
             binding.engineer = item
             binding.root.setOnClickListener {
                 onClickListener.onClick(item)
@@ -39,7 +40,7 @@ class EngineersSelectListAdapter(private val onClickListener: OnClickListener) :
         }
     }
 
-    class OnClickListener(private var onClickListener: (String) -> Unit) {
-        fun onClick(item: String) = onClickListener(item)
+    class OnClickListener(private var onClickListener: (Engineer) -> Unit) {
+        fun onClick(item: Engineer) = onClickListener(item)
     }
 }

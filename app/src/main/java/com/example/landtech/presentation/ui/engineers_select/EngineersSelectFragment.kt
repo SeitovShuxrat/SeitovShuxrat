@@ -1,4 +1,4 @@
-package com.example.landtech.presentation.ui.order_details.tab_fragments.work.engineers_select
+package com.example.landtech.presentation.ui.engineers_select
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +10,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.landtech.databinding.FragmentEngineersSelectBinding
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EngineersSelectFragment : Fragment() {
 
     private lateinit var binding: FragmentEngineersSelectBinding
@@ -29,23 +31,17 @@ class EngineersSelectFragment : Fragment() {
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             val adapter = EngineersSelectListAdapter(EngineersSelectListAdapter.OnClickListener {
-//                viewModel.setEngineer(it)
+                viewModel.addEngineer(it)
                 Toast.makeText(
                     requireContext(), "Инженер добавлен в список!", Toast.LENGTH_LONG
                 ).show()
                 findNavController().navigateUp()
             })
             engineersRecyclerView.adapter = adapter
-            adapter.submitList(
-                listOf(
-                    "Andres Iniesta",
-                    "Alexis Sanchez",
-                    "Cristiano Ronaldo",
-                    "Leo Messi",
-                    "Carles Puyol",
-                    "Harry Maguire",
-                )
-            )
+
+            viewModel.getEngineersList().observe(viewLifecycleOwner) {
+                adapter.submitList(it)
+            }
         }
     }
 }

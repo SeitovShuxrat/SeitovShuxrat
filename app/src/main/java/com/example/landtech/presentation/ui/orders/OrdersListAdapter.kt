@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.landtech.data.database.models.Order
+import com.example.landtech.domain.models.Order
 import com.example.landtech.databinding.OrderItemBinding
 
 class OrdersListAdapter(private val onClickListener: OnClickListener) :

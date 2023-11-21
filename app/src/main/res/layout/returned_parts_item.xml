@@ -1,131 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
         <variable
             name="item"
-            type="com.example.landtech.data.database.models.ReturnedPartsItem" />
+            type="com.example.landtech.domain.models.ReturnedPartsItem" />
     </data>
 
-    <LinearLayout
-        android:id="@+id/linearLayout8"
+    <com.chauthai.swipereveallayout.SwipeRevealLayout
+        android:id="@+id/swipeRevealLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        app:dragEdge="right"
+        app:mode="same_level">
 
-        <TextView
-            android:id="@+id/warehouseReturnTextView"
-            android:layout_width="0dp"
+        <!--        Swipe layout-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/deleteBtn"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="#A52626"
+                android:gravity="center"
+                android:text="Удалить"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayout8"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ item.warehouse }"
-            android:textSize="16sp" />
+            android:orientation="horizontal"
+            android:scrollHorizontally="false">
 
-        <View
-            android:id="@+id/divider20"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/warehouseReturnTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@{ item.warehouse }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/dateReturnTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ item.date }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider20"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider26"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/dateReturnTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@{ item.date }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/codeReturnTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ item.code }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider26"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider21"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/codeReturnTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:gravity="center"
+                android:padding="4dp"
+                android:scrollHorizontally="false"
+                android:text="@{ item.code }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/nameReturnTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ item.name }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider21"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider22"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/nameReturnTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@{ item.name }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/numberReturnTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ item.number }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider22"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider25"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/numberReturnTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@{ item.number }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/returnedTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ String.valueOf(item.returned) }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider25"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider24"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
+            <EditText
+                android:id="@+id/returnedTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:inputType="number|numberDecimal"
+                android:padding="4dp"
+                android:text="@{ String.valueOf(item.returned) }"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/receivedReturnTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ String.valueOf(item.received) }"
-            android:textSize="16sp" />
+            <View
+                android:id="@+id/divider24"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
 
-        <View
-            android:id="@+id/divider27"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/receivedReturnTV"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@{ String.valueOf(item.received) }"
+                android:textSize="14sp" />
+
+            <View
+                android:id="@+id/divider27"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/listDivider" />
+        </LinearLayout>
+    </com.chauthai.swipereveallayout.SwipeRevealLayout>
 </layout>

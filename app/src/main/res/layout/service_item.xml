@@ -5,7 +5,7 @@
 
         <variable
             name="serviceItem"
-            type="com.example.landtech.data.database.models.ServiceItem" />
+            type="com.example.landtech.domain.models.ServiceItem" />
     </data>
 
     <LinearLayout
@@ -129,7 +129,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="4dp"
-                android:text="@{ serviceItem.engineer }"
+                android:text="@{ serviceItem.engineer.name }"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 

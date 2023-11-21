@@ -6,7 +6,7 @@
 
         <variable
             name="item"
-            type="com.example.landtech.data.database.models.ReceivedPartsItem" />
+            type="com.example.landtech.domain.models.ReceivedPartsItem" />
     </data>
 
 
@@ -25,7 +25,7 @@
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ item.warehouse }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider10"
@@ -37,11 +37,11 @@
             android:id="@+id/dateTV"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
+            android:layout_weight="0.7"
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ item.date }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider6"
@@ -53,11 +53,11 @@
             android:id="@+id/codeTV"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
+            android:layout_weight="0.7"
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ item.code }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider11"
@@ -73,7 +73,7 @@
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ item.name }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider12"
@@ -89,7 +89,7 @@
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ item.number }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider13"
@@ -101,11 +101,11 @@
             android:id="@+id/neededTV"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.7"
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ String.valueOf(item.needed) }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider14"
@@ -117,11 +117,11 @@
             android:id="@+id/inTransitTV"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.7"
             android:gravity="center"
             android:padding="4dp"
             android:text="@{ String.valueOf(item.inTransit) }"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider15"
@@ -129,15 +129,15 @@
             android:layout_height="match_parent"
             android:background="?android:attr/listDivider" />
 
-        <TextView
+        <EditText
             android:id="@+id/receivedTV"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.7"
             android:gravity="center"
             android:padding="4dp"
-            android:text="@{ String.valueOf(item.received) }"
-            android:textSize="16sp" />
+            android:inputType="numberDecimal"
+            android:textSize="14sp" />
 
         <View
             android:id="@+id/divider16"
@@ -145,20 +145,5 @@
             android:layout_height="match_parent"
             android:background="?android:attr/listDivider" />
 
-        <TextView
-            android:id="@+id/beingPaidTV"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="4dp"
-            android:text="@{ String.valueOf(item.beingPaid) }"
-            android:textSize="16sp" />
-
-        <View
-            android:id="@+id/divider17"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?android:attr/listDivider" />
     </LinearLayout>
 </layout>

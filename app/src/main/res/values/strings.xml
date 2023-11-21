@@ -3,4 +3,6 @@
     <string name="date_header">Дата</string>
     <string name="number_header">Номер</string>
     <string name="client_header">Клиент</string>
+    <string name="channel_name">land_channel</string>
+    <string name="channel_description">land_reminder</string>
 </resources>

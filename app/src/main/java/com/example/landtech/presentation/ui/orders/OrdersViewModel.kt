@@ -1,161 +1,76 @@
 package com.example.landtech.presentation.ui.orders
 
+import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.landtech.data.database.models.Order
-import com.example.landtech.data.database.models.ReceivedPartsItem
-import com.example.landtech.data.database.models.ReturnedPartsItem
-import com.example.landtech.data.database.models.ServiceItem
-import com.example.landtech.data.database.models.UsedPartsItem
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.landtech.data.repository.LandtechRepository
+import com.example.landtech.data.work.FetchOrdersWorker
+import com.example.landtech.data.work.UploadOrderWithFilesToServerWorker
+import com.example.landtech.domain.models.Order
+import com.example.landtech.domain.models.OrderStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class OrdersViewModel : ViewModel() {
+@HiltViewModel
+class OrdersViewModel @Inject constructor(
+    private val repository: LandtechRepository,
+    @ApplicationContext context: Context
+) :
+    ViewModel() {
 
-    private val _orders = MutableLiveData<List<Order>>()
-    val orders get() = _orders
+    val userLoggedIn = repository.userLoggedIn.asLiveData()
 
-    init {
-        val orderList = listOf(
-            Order(
-                number = "AC-00000001",
-                date = "05.04.2023",
-                client = "John Doe",
-                workType = "Обслуживание",
-                engineer = "Harry Maguire",
-                startDate = "05.04.2023 10:23:32",
-                machine = "Автомобиль",
-                sn = "000010101010",
-                ln = "232323",
-                en = "121232323",
-                driveTime = 123.0,
-                typeOrder = "Ремонт с запчастями",
-                status = "Новый",
-                problemDescription = "Большая проблема",
-                workDescription = "Много работы"
-            ),
-            Order(
-                number = "AC-00000002",
-                date = "06.04.2023",
-                client = "Barack Obama",
-                workType = "Ремонт",
-                engineer = "Katie Perry",
-                startDate = "05.04.2023 15:23:32",
-                machine = "Мотоцикл",
-                sn = "60710101010",
-                ln = "54232323",
-                en = "4332323",
-                driveTime = 323.0,
-                typeOrder = "Произвольное обслуживание",
-                status = "Новый",
-                problemDescription = "Маленькая проблема",
-                workDescription = "Много работы"
-            ),
-            Order(
-                number = "AC-00000003",
-                date = "07.04.2023",
-                client = "Michelle Platini",
-                typeOrder = "Ремонт с запчастями",
-                status = "Новый"
-            ),
-            Order(
-                number = "AC-00000004",
-                date = "08.04.2023",
-                client = "Zinedine Zidane",
-                typeOrder = "Ремонт с запчастями",
-                status = "Новый"
-            ),
-            Order(
-                number = "AC-00000005", date = "09.04.2023", client = "Rustam Kasimdjanov",
-                typeOrder = "Ремонт с запчастями",
-                status = "Новый"
-            ),
-            Order(
-                number = "AC-00000006", date = "10.04.2023", client = "Mesut Ozil",
-                typeOrder = "Произвольное обслуживание",
-                status = "Новый"
-            ),
-            Order(
-                number = "AC-00000007", date = "11.04.2023", client = "Andreas Iniesta",
-                typeOrder = "Произвольное обслуживание",
-                status = "Новый"
-            ),
-            Order(number = "AC-00000001", date = "05.04.2023", client = "John Doe"),
-            Order(number = "AC-00000002", date = "06.04.2023", client = "Barack Obama"),
-            Order(number = "AC-00000003", date = "07.04.2023", client = "Michelle Platini"),
-            Order(number = "AC-00000004", date = "08.04.2023", client = "Zinedine Zidane"),
-            Order(number = "AC-00000005", date = "09.04.2023", client = "Rustam Kasimdjanov"),
-            Order(number = "AC-00000006", date = "10.04.2023", client = "Mesut Ozil"),
-            Order(number = "AC-00000007", date = "11.04.2023", client = "Andreas Iniesta"),
-            Order(number = "AC-00000001", date = "05.04.2023", client = "John Doe"),
-            Order(number = "AC-00000002", date = "06.04.2023", client = "Barack Obama"),
-            Order(number = "AC-00000003", date = "07.04.2023", client = "Michelle Platini"),
-            Order(number = "AC-00000004", date = "08.04.2023", client = "Zinedine Zidane"),
-            Order(number = "AC-00000005", date = "09.04.2023", client = "Rustam Kasimdjanov"),
-            Order(number = "AC-00000006", date = "10.04.2023", client = "Mesut Ozil"),
-            Order(number = "AC-00000007", date = "11.04.2023", client = "Andreas Iniesta"),
-        )
-
-        addListItems(orderList[0])
-        addListItems(orderList[1])
-
-        _orders.value = orderList
+    private val ordersFilterValue = MutableLiveData<OrderStatus?>(null)
+    val orders: LiveData<List<Order>> = ordersFilterValue.switchMap { status ->
+        repository.getAllOrders(status).asLiveData().map {
+            it.map { orderAggregate ->
+                orderAggregate.toDomainModel()
+            }
+        }
     }
 
-    private fun addListItems(order: Order) {
-        order.services.add(
-            ServiceItem(
-                workType = order.workType,
-                engineer = order.engineer,
-                measureUnit = "км",
-            )
-        )
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.fetchOrdersRemote()
 
-        order.services.add(
-            ServiceItem(
-                workType = order.workType,
-                engineer = order.engineer,
-                measureUnit = "ч",
-            )
-        )
+            val workRequest = OneTimeWorkRequestBuilder<FetchOrdersWorker>()
+                .addTag(FetchOrdersWorker.TAG)
+                .setInitialDelay(2, TimeUnit.MINUTES)
+                .build()
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork(
+                    FetchOrdersWorker.WORK_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    workRequest
+                )
 
-        order.usedParts.add(
-            UsedPartsItem(
-                clientUhm = "Клиент",
-                quantity = 4.00
-            )
-        )
+            val workRequestUploadOrders =
+                OneTimeWorkRequestBuilder<UploadOrderWithFilesToServerWorker>()
+                    .setInitialDelay(2, TimeUnit.MINUTES)
+                    .addTag(UploadOrderWithFilesToServerWorker.TAG)
+                    .build()
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork(
+                    UploadOrderWithFilesToServerWorker.WORK_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    workRequestUploadOrders
+                )
+        }
+    }
 
-        order.usedParts.add(
-            UsedPartsItem(
-                clientUhm = "UHM склад",
-                code = "00000001",
-                name = "Запчасть 1",
-                number = "12132321",
-                quantity = 3.00
-            )
-        )
-
-        order.receivedParts.add(
-            ReceivedPartsItem(
-                warehouse = "Основной склад",
-                code = "00000001",
-                name = "Запчасть 1",
-                number = "12132321",
-                date = "10.09.2023",
-                needed = 4.0,
-                inTransit = 4.0
-            )
-        )
-
-        order.returnedParts.add(
-            ReturnedPartsItem(
-                warehouse = "Основной склад",
-                code = "00000001",
-                name = "Запчасть 1",
-                number = "12132321",
-                date = "05.09.2023",
-                returned = 2.0,
-                received = 2.0
-            )
-        )
+    fun setStatusFilter(status: OrderStatus?) {
+        ordersFilterValue.value = status
     }
 }

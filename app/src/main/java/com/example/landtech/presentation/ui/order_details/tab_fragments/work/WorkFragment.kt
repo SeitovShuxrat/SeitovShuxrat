@@ -1,7 +1,6 @@
 package com.example.landtech.presentation.ui.order_details.tab_fragments.work
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
@@ -20,9 +19,11 @@ import androidx.navigation.fragment.findNavController
 import com.example.landtech.databinding.FragmentWorkBinding
 import com.example.landtech.presentation.ui.order_details.OrderDetailsFragmentDirections
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import okhttp3.internal.toImmutableList
 import java.util.Objects
 
-
+@AndroidEntryPoint
 class WorkFragment : Fragment() {
     private lateinit var binding: FragmentWorkBinding
     private val viewModel: OrderDetailsViewModel by activityViewModels()
@@ -55,6 +56,7 @@ class WorkFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@WorkFragment.viewModel
@@ -86,6 +88,38 @@ class WorkFragment : Fragment() {
 
                 startSpeechToText.launch(intent)
             }
+
+            createGuaranteeOrder.setOnClickListener {
+                this@WorkFragment.viewModel.setCreateGuaranteeOrder()
+            }
+
+            workNotGuaranteed.setOnClickListener {
+                this@WorkFragment.viewModel.setWorkNotGuaranteed()
+            }
+
+            addUsedPart.setOnClickListener {
+                this@WorkFragment.viewModel.onNavigateToAddUsedPart()
+                findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToUsedPartAddFragment())
+            }
+
+            addZC.setOnClickListener {
+                this@WorkFragment.viewModel.onNavigateToAddNewSparePartsList()
+                findNavController().navigate(
+                    OrderDetailsFragmentDirections.actionOrderDetailsFragmentToAddSparePartsListFragment(
+                        false
+                    )
+                )
+            }
+
+            addZCDiagnose.setOnClickListener {
+                this@WorkFragment.viewModel.onNavigateToAddNewSparePartsList()
+                findNavController().navigate(
+                    OrderDetailsFragmentDirections.actionOrderDetailsFragmentToAddSparePartsListFragment(
+                        true
+                    )
+                )
+            }
+
         }
     }
 
