@@ -50,7 +50,9 @@ data class Order(
     var workHasNoGuarantee: Boolean = false,
     var isModified: Boolean = false,
     var clientRejectedToSign: Boolean = false,
-    var partsAreReceived: Boolean = false
+    var partsAreReceived: Boolean = false,
+    var isMainUser: Boolean = false,
+    var workStarted: Boolean = false
 ) : Parcelable {
 
     fun toDatabaseModel() = OrderDb(
@@ -87,6 +89,8 @@ data class Order(
         needToCreateGuaranteeOrder = needToCreateGuaranteeOrder,
         workHasNoGuarantee = workHasNoGuarantee,
         clientRejectedToSign = clientRejectedToSign,
-        partsAreReceived = partsAreReceived
+        partsAreReceived = partsAreReceived,
+        isMainUser = isMainUser,
+        workStarted = workStarted
     )
 }

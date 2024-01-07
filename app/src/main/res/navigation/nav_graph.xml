@@ -78,7 +78,11 @@
     <fragment
         android:id="@+id/selectSparePartFragment"
         android:name="com.example.landtech.presentation.ui.select_spare_part.SelectSparePartFragment"
-        android:label="Остатки з/ч" />
+        android:label="Остатки з/ч" >
+        <argument
+            android:name="showOnlyRemainders"
+            app:argType="boolean" />
+    </fragment>
     <fragment
         android:id="@+id/addSparePartsListFragment"
         android:name="com.example.landtech.presentation.ui.add_spare_parts_list.AddSparePartsListFragment"

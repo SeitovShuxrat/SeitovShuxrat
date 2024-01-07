@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<!--    <uses-permission android:name="android.permission.RECORD_AUDIO" />-->
 
     <application
         android:name=".LandtechApp"
@@ -46,6 +47,10 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <service
+            android:name=".domain.services.AudioRecordingService"
+            android:exported="false" />
     </application>
 
 </manifest>

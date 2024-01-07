@@ -25,7 +25,9 @@ fun bindOrdersListData(recyclerView: RecyclerView, data: List<Order>?) {
 @BindingAdapter("selectReceivedPartsData")
 fun bindSelectReceivedPartsData(recyclerView: RecyclerView, data: List<ReceivedPartsItem>?) {
     val adapter = recyclerView.adapter as SelectReceivedPartListAdapter
-    adapter.submitList(data)
+    adapter.submitList(data?.filter {
+        it.received > 0
+    })
 }
 
 @BindingAdapter("receivedPartsData")

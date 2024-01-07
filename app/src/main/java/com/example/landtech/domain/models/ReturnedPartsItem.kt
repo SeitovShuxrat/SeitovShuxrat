@@ -16,7 +16,9 @@ data class ReturnedPartsItem(
     var number: String = "",
     var returned: Double = 0.0,
     var received: Double = 0.0,
-    var isDeletable: Boolean = true
+    var isDeletable: Boolean = true,
+    var maxQuantity: Double = 0.0   ,
+    var isSaved: Boolean = false
 ) : Parcelable {
     fun toDatabaseModel(orderId: String) =
         ReturnedPartsItemDb(

@@ -5,10 +5,13 @@ import android.net.Uri
 import android.text.Editable
 import android.text.TextWatcher
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.landtech.data.remote.dto.NewSparePartDto
 import com.example.landtech.data.remote.dto.SparePartDto
@@ -24,10 +27,12 @@ import com.example.landtech.domain.models.ScreenStatus
 import com.example.landtech.domain.models.ServiceItem
 import com.example.landtech.domain.models.TransferOrder
 import com.example.landtech.domain.models.UsedPartsItem
+import com.example.landtech.domain.utils.combine
 import com.example.landtech.domain.utils.makeString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -37,9 +42,14 @@ import javax.inject.Inject
 @HiltViewModel
 class OrderDetailsViewModel @Inject constructor(private val repository: LandtechRepository) :
     ViewModel() {
+    var isRecording = false
+    var recordFile: File? = null
+
+    private val _isMainUser = MutableLiveData(true)
+    val isMainUser: LiveData<Boolean> get() = _isMainUser
 
     private val _screenStatus = MutableLiveData(ScreenStatus.READY)
-    val screenStatus = _screenStatus
+    val screenStatus: LiveData<ScreenStatus> get() = _screenStatus
 
     private val _order = MutableLiveData<Order?>(null)
     val order: LiveData<Order?> get() = _order
@@ -89,6 +99,9 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
+    private val _returnedItemsError = MutableLiveData(false)
+    val returnedItemsError get() = _returnedItemsError
+
     val returnedQuantityWatcher = getTextWatcher {
         isModified = true
 
@@ -114,8 +127,20 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
+    private var _sparePartsSearchQuery = MutableLiveData("")
+    val sparePartsSearchQuery: LiveData<String> = _sparePartsSearchQuery
+
     private var _sparePartsList = MutableLiveData<List<SparePartDto>>()
-    val sparePartsList: LiveData<List<SparePartDto>> = _sparePartsList
+    val sparePartsList: LiveData<List<SparePartDto>> =
+        sparePartsSearchQuery.combine(_sparePartsList).switchMap { pair ->
+            val list = pair.second ?: listOf()
+            val query = (pair.first ?: "").lowercase()
+
+            MutableLiveData(if (query.isEmpty()) list
+            else list.filter {
+                it.name.lowercase().contains(query) || it.number.lowercase().contains(query)
+            })
+        }
 
     private var _newAddedSpareParts = MutableLiveData<List<NewSparePartDto>>()
     val newAddedSpareParts: LiveData<List<NewSparePartDto>> = _newAddedSpareParts
@@ -137,6 +162,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         _services.value = order.services
         _usedParts.value = order.usedParts
         _returnedParts.value = order.returnedParts
+        _isMainUser.value = order.isMainUser
 
         clientRejectedToSign = order.clientRejectedToSign
     }
@@ -196,15 +222,20 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         isModified = true
         _order.value?.apply {
             isModified = true
+            workStarted = true
             workStartDate = formatter.format(Date())
         }
-        setStatus(OrderStatus.IN_RESERVE)
+        setStatus(OrderStatus.IN_WORK)
     }
 
     fun setWorkEnd() {
         isModified = true
+
         _order.value?.apply {
+            if (!workStarted) return
+
             isModified = true
+            workStarted = false
             val dateEnd = Date()
             val dateStart = formatter.parse(workStartDate)
             val difference = dateEnd.time - (dateStart?.time ?: dateEnd.time)
@@ -212,9 +243,9 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
             workEndDate = formatter.format(dateEnd)
 
-            services.removeIf {
-                it.workType == typeOfWork
-            }
+//            services.removeIf {
+//                it.workType == typeOfWork
+//            }
 
             services.add(
                 ServiceItem(
@@ -227,9 +258,17 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
                     isLaborCost = true
                 )
             )
-            setStatus(OrderStatus.CLOSED)
             _services.postValue(services)
         }
+    }
+
+    fun setAllWorksEnd() {
+        isModified = true
+        _order.value?.apply {
+            isModified = true
+        }
+
+        setStatus(OrderStatus.ENDED)
     }
 
     fun setEndTrip(location: Location) {
@@ -271,7 +310,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
     fun startWorkIsSet(): Boolean {
         val orderVal = order.value ?: return false
-        return orderVal.workStartDate.isNotBlank()
+        return orderVal.workStartDate.isNotBlank() && orderVal.workStarted
     }
 
     fun setImage(uri: Uri) {
@@ -317,8 +356,17 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
-    fun saveOrder() {
+    fun saveOrder(): Boolean {
         isModified = false
+
+        order.value?.returnedParts?.forEach {
+            if ((it.returned > it.maxQuantity || it.returned == 0.0) && !it.isSaved) {
+                _returnedItemsError.value = true
+                return false
+            }
+        }
+
+        _returnedItemsError.value = false
 
         viewModelScope.launch(Dispatchers.IO) {
             order.value?.let {
@@ -326,6 +374,8 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
                 repository.saveTransferOrdersToDatabaseAndSendToServer(_selectedTransferOrders)
             }
         }
+
+        return true
     }
 
     fun reset() {
@@ -395,15 +445,9 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     }
 
     fun onNavigateToAddNewSparePart() {
-        _newAddedSparePart.value =
-            NewSparePartDto(
-                UUID.randomUUID().toString(),
-                _order.value?.id ?: "",
-                "",
-                "",
-                0.0,
-                false
-            )
+        _newAddedSparePart.value = NewSparePartDto(
+            UUID.randomUUID().toString(), _order.value?.id ?: "", "", "", 0.0, false
+        )
     }
 
     fun onNavigateToAddNewSparePartsList() {
@@ -438,16 +482,15 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
-    fun fetchSparePartList() {
+    fun fetchSparePartList(showOnlyRemainders: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            _sparePartsList.postValue(repository.getAllSpareParts())
+            _sparePartsList.postValue(repository.getAllSpareParts(showOnlyRemainders))
         }
     }
 
     fun setNewSparePartItem(sparePartDto: SparePartDto) {
         _newAddedSparePart.value = _newAddedSparePart.value?.copy(
-            code = sparePartDto.code,
-            name = sparePartDto.name
+            code = sparePartDto.code, name = sparePartDto.name
         )
     }
 
@@ -473,17 +516,15 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     fun saveNewSparePartsList(isDiagnose: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             _newAddedSpareParts.value?.let {
-                val isSuccessful =
-                    repository.sendNewSpareParts(it.map { nsp ->
-                        nsp.isDiagnose = isDiagnose
-                        nsp
-                    })
+                val isSuccessful = repository.sendNewSpareParts(it.map { nsp ->
+                    nsp.isDiagnose = isDiagnose
+                    nsp
+                })
 
-                if (!isSuccessful)
-                    repository.insertNewSpareParts(it.map { newSparePartDto ->
-                        newSparePartDto.isDiagnose = isDiagnose
-                        newSparePartDto.toDatabaseModel()
-                    })
+                if (!isSuccessful) repository.insertNewSpareParts(it.map { newSparePartDto ->
+                    newSparePartDto.isDiagnose = isDiagnose
+                    newSparePartDto.toDatabaseModel()
+                })
             }
         }
     }
@@ -506,7 +547,8 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
                     date = Date().makeString(),
                     name = item.name,
                     number = item.number,
-                    returned = item.received
+                    returned = item.received,
+                    maxQuantity = item.received
                 )
             )
 
@@ -560,5 +602,13 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
     fun addTransferOrder(transferOrder: TransferOrder) {
         _selectedTransferOrders.add(transferOrder.copy(needToCreate = true))
+    }
+
+    fun setUsedPartAddNumber(number: String) {
+        _usedPartItemAdd.value = _usedPartItemAdd.value?.copy(number = number)
+    }
+
+    fun setSparePartsListSearch(query: String) {
+        _sparePartsSearchQuery.value = query
     }
 }

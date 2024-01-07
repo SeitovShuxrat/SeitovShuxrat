@@ -51,7 +51,9 @@ data class OrderDb(
     var needToCreateGuaranteeOrder: Boolean = false,
     var workHasNoGuarantee: Boolean = false,
     var clientRejectedToSign: Boolean = false,
-    var partsAreReceived: Boolean = false
+    var partsAreReceived: Boolean = false,
+    var isMainUser: Boolean = true,
+    var workStarted: Boolean = false
 //    val services: MutableList<ServiceItem> = mutableListOf(),
 //    val usedParts: MutableList<UsedPartsItem> = mutableListOf(),
 //    val receivedParts: MutableList<ReceivedPartsItem> = mutableListOf(),

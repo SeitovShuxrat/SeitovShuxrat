@@ -37,7 +37,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="@color/orange"
                 android:orientation="horizontal"
                 android:padding="16dp"
                 app:layout_constraintBottom_toBottomOf="@+id/linearLayout4"
@@ -68,7 +67,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="@color/teal_700"
                 android:orientation="horizontal"
                 android:padding="16dp"
                 app:layout_constraintBottom_toBottomOf="@+id/linearLayout3"
@@ -99,7 +97,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@color/orange"
                 android:orientation="horizontal"
                 android:padding="16dp"
                 app:layout_constraintStart_toStartOf="@+id/linearLayout"
@@ -160,7 +157,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="@color/yellow"
                 android:orientation="horizontal"
                 android:padding="16dp"
                 app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
@@ -192,9 +188,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:backgroundTint="#74CEFB"
                 android:text="Начало поездки"
-                android:textColor="@color/pink_text"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -202,9 +196,7 @@
                 android:id="@+id/arrivalBtn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/teal_200"
                 android:text="Прибытие"
-                android:textColor="@color/pink_text"
                 app:layout_constraintEnd_toEndOf="@+id/startTripBtn"
                 app:layout_constraintStart_toStartOf="@+id/startTripBtn"
                 app:layout_constraintTop_toBottomOf="@+id/startTripBtn" />
@@ -213,24 +205,41 @@
                 android:id="@+id/startWorkBtn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#74CEFB"
                 android:text="Начало Работы"
-                android:textColor="@color/pink_text"
                 app:layout_constraintBottom_toBottomOf="@+id/startTripBtn"
                 app:layout_constraintEnd_toEndOf="@+id/endWorkBtn"
                 app:layout_constraintStart_toStartOf="@+id/endWorkBtn"
                 app:layout_constraintTop_toTopOf="@+id/startTripBtn" />
 
             <Button
+                android:id="@+id/endAllWorks"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Окончание работ"
+                app:layout_constraintBottom_toBottomOf="@+id/startWorkBtn"
+                app:layout_constraintStart_toEndOf="@+id/startWorkBtn"
+                app:layout_constraintTop_toTopOf="@+id/startWorkBtn" />
+
+            <Button
+                android:id="@+id/signWorks"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Добавить подпись"
+                app:layout_constraintBottom_toBottomOf="@+id/endAllWorks"
+                app:layout_constraintStart_toEndOf="@+id/endAllWorks"
+                app:layout_constraintTop_toTopOf="@+id/endAllWorks"
+                app:layout_constraintVertical_bias="1.0" />
+
+            <Button
                 android:id="@+id/endWorkBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:backgroundTint="@color/teal_200"
                 android:elegantTextHeight="false"
                 android:text="Окончание Работы"
                 android:textAllCaps="true"
-                android:textColor="@color/pink_text"
                 app:layout_constraintBottom_toBottomOf="@+id/arrivalBtn"
                 app:layout_constraintStart_toEndOf="@+id/arrivalBtn"
                 app:layout_constraintTop_toTopOf="@+id/arrivalBtn" />
@@ -261,14 +270,13 @@
 
             <Button
                 android:id="@+id/endTripBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:backgroundTint="@color/teal_200"
                 android:text="Окончание \n поездки"
-                android:textColor="@color/pink_text"
                 app:layout_constraintBottom_toBottomOf="@+id/endWorkBtn"
+                app:layout_constraintEnd_toEndOf="@+id/endAllWorks"
                 app:layout_constraintStart_toEndOf="@+id/endWorkBtn"
+                app:layout_constraintStart_toStartOf="@+id/endAllWorks"
                 app:layout_constraintTop_toTopOf="@+id/endWorkBtn" />
 
             <LinearLayout
@@ -276,7 +284,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:background="@color/yellow"
                 android:orientation="horizontal"
                 android:padding="16dp"
                 app:layout_constraintStart_toStartOf="@+id/arrivalBtn"

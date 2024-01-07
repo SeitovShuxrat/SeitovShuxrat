@@ -12,14 +12,23 @@
         android:orderInCategory="10" />
     <item
         android:id="@+id/menu_on_negotiation"
-        android:title="На согласовании"
+        android:title="Новый"
         android:orderInCategory="10" />
     <item
         android:id="@+id/menu_being_done"
-        android:title="К выполнению"
+        android:title="В работе"
         android:orderInCategory="10" />
     <item
+        android:id="@+id/menu_ended"
+        android:title="Завершена"
+        android:orderInCategory="10" />
+
+    <item
         android:id="@+id/menu_closed"
-        android:title="Закрыт"
+        android:title="Закрыта"
+        android:orderInCategory="10"/>
+    <item
+        android:id="@+id/menu_logout"
+        android:title="Выйти"
         android:orderInCategory="10"/>
 </menu>

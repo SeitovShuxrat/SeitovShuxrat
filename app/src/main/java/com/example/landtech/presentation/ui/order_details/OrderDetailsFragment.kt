@@ -124,8 +124,7 @@ class OrderDetailsFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.menu_save -> {
-                        viewModel.saveOrder()
-                        findNavController().navigateUp()
+                        saveOrder()
                         true
                     }
 
@@ -208,6 +207,9 @@ class OrderDetailsFragment : Fragment() {
         }
 
         binding.apply {
+            this@OrderDetailsFragment.viewModel.isMainUser.observe(viewLifecycleOwner) {
+                setEnabled(it)
+            }
 
             this@OrderDetailsFragment.viewModel.screenStatus.observe(viewLifecycleOwner) {
                 if (it == ScreenStatus.READY) {
@@ -249,7 +251,6 @@ class OrderDetailsFragment : Fragment() {
             endWorkBtn.setOnClickListener {
                 if (this@OrderDetailsFragment.viewModel.startWorkIsSet()) {
                     this@OrderDetailsFragment.viewModel.setWorkEnd()
-                    findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToSignatureFragment())
                 } else {
                     Toast.makeText(
                         requireContext(),
@@ -257,6 +258,14 @@ class OrderDetailsFragment : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
+            }
+
+            signWorks.setOnClickListener {
+                findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToSignatureFragment())
+            }
+
+            endAllWorks.setOnClickListener {
+                this@OrderDetailsFragment.viewModel.setAllWorksEnd()
             }
 
             endTripBtn.setOnClickListener {
@@ -282,14 +291,29 @@ class OrderDetailsFragment : Fragment() {
         }
     }
 
+    private fun setEnabled(isMainUser: Boolean?) {
+        isMainUser?.let {
+            binding.apply {
+                startTripBtn.isEnabled = it
+                arrivalBtn.isEnabled = it
+                startWorkBtn.isEnabled = it
+                endWorkBtn.isEnabled = it
+                endAllWorks.isEnabled = it
+                endTripBtn.isEnabled = it
+                addAutoBtn.isEnabled = it
+                addImageBtn.isEnabled = it
+                arrivalBtn.isEnabled = it
+            }
+        }
+    }
+
     private fun handleOnBackPressedOrderDetails(): Boolean {
         if (viewModel.isModified) {
             AlertDialog.Builder(requireContext()).apply {
                 setTitle("Сохранить изменения?")
                 setMessage("Заказ был изменен. Хотите сохранить изменения?")
                 setPositiveButton("Да") { _, _ ->
-                    viewModel.saveOrder()
-                    findNavController().navigateUp()
+                    saveOrder()
                 }
                 setNegativeButton("Нет") { _, _ ->
                     viewModel.reset()
@@ -319,5 +343,19 @@ class OrderDetailsFragment : Fragment() {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+    }
+
+    private fun saveOrder() {
+        val result = viewModel.saveOrder()
+        if (result)
+            findNavController().navigateUp()
+        else {
+            Toast.makeText(
+                requireContext(),
+                "Ошибка заполнения таблицы возвращенных запчастей!",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
     }
 }

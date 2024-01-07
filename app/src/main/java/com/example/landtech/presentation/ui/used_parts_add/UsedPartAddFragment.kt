@@ -8,6 +8,7 @@ import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -102,7 +103,7 @@ class UsedPartAddFragment : Fragment() {
             }
 
             selectGoodsBtn.setOnClickListener {
-                findNavController().navigate(UsedPartAddFragmentDirections.actionUsedPartAddFragmentToSelectSparePartFragment())
+                findNavController().navigate(UsedPartAddFragmentDirections.actionUsedPartAddFragmentToSelectSparePartFragment(true))
             }
 
             cancelBtn.setOnClickListener {
@@ -126,7 +127,9 @@ class UsedPartAddFragment : Fragment() {
                 findNavController().navigateUp()
             }
 
-            quantity
+            numberET.addTextChangedListener {
+                viewModel.setUsedPartAddNumber(it.toString())
+            }
         }
     }
 
@@ -145,6 +148,7 @@ class UsedPartAddFragment : Fragment() {
             codeLabel.visibility = visibility
             code.visibility = visibility
             selectGoodsBtn.visibility = visibility
+            numberET.visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
     }
 }

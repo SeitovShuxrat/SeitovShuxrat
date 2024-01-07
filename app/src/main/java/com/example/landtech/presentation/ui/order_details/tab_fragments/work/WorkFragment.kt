@@ -20,7 +20,6 @@ import com.example.landtech.databinding.FragmentWorkBinding
 import com.example.landtech.presentation.ui.order_details.OrderDetailsFragmentDirections
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import okhttp3.internal.toImmutableList
 import java.util.Objects
 
 @AndroidEntryPoint
@@ -28,8 +27,10 @@ class WorkFragment : Fragment() {
     private lateinit var binding: FragmentWorkBinding
     private val viewModel: OrderDetailsViewModel by activityViewModels()
 
+
     private val startSpeechToText =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+
             val resultCode = result.resultCode
             val data = result.data
 
@@ -60,8 +61,14 @@ class WorkFragment : Fragment() {
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@WorkFragment.viewModel
-            servicesRecyclerView.adapter = ServicesListAdapter()
+            servicesRecyclerView.adapter = ServicesListAdapter {
+                this@WorkFragment.viewModel.setModified(true)
+            }
             usedSparePartsRecyclerView.adapter = UsedPartsListAdapter()
+
+            this@WorkFragment.viewModel.isMainUser.observe(viewLifecycleOwner) {
+                setEnabled(it)
+            }
 
             addEngineer.setOnClickListener {
                 findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToEngineersSelectFragment())
@@ -120,6 +127,26 @@ class WorkFragment : Fragment() {
                 )
             }
 
+        }
+    }
+
+    private fun setEnabled(isMainUser: Boolean?) {
+        isMainUser?.let {
+            binding.apply {
+                startWorkBtn.isEnabled = isMainUser
+                endWorkBtn.isEnabled = isMainUser
+                addZC.isEnabled = isMainUser
+                addZCDiagnose.isEnabled = isMainUser
+                clientIssueDefinition.isEnabled = isMainUser
+                workDefinition.isEnabled = isMainUser
+                quickReport.isEnabled = isMainUser
+                voiceDefinitionBtn.isEnabled = isMainUser
+                createGuaranteeOrder.isEnabled = isMainUser
+                workNotGuaranteed.isEnabled = isMainUser
+                addEngineer.isEnabled = isMainUser
+                addUsedPart.isEnabled = isMainUser
+                usedSparePartsRecyclerView.isEnabled = isMainUser
+            }
         }
     }
 

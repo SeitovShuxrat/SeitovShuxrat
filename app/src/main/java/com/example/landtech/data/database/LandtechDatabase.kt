@@ -19,7 +19,7 @@ import com.example.landtech.data.database.models.UsedPartsItemDb
         ReturnedPartsItemDb::class, ServiceItemDb::class, UsedPartsItemDb::class,
         EngineersOrderItemDb::class, ExploitationObjectDb::class, NewSparePartDb::class,
         TransferOrderDb::class],
-    version = 20
+    version = 23
 )
 @TypeConverters(Converters::class)
 abstract class LandtechDatabase : RoomDatabase() {

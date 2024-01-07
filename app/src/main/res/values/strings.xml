@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">landtech</string>
+    <string name="app_name">UHM Landtech</string>
     <string name="date_header">Дата</string>
     <string name="number_header">Номер</string>
     <string name="client_header">Клиент</string>

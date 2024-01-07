@@ -2,21 +2,24 @@ package com.example.landtech.presentation.ui.order_details.tab_fragments.work
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landtech.domain.models.ServiceItem
 import com.example.landtech.databinding.ServiceItemBinding
+import java.util.Locale
 
-class ServicesListAdapter : ListAdapter<ServiceItem, ServicesListAdapter.VH>(
-    object : DiffUtil.ItemCallback<ServiceItem>() {
-        override fun areItemsTheSame(oldItem: ServiceItem, newItem: ServiceItem) =
-            oldItem.id == newItem.id
+class ServicesListAdapter(private val onQuantityChanged: () -> Unit) :
+    ListAdapter<ServiceItem, ServicesListAdapter.VH>(
+        object : DiffUtil.ItemCallback<ServiceItem>() {
+            override fun areItemsTheSame(oldItem: ServiceItem, newItem: ServiceItem) =
+                oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: ServiceItem, newItem: ServiceItem) =
-            oldItem == newItem
-    }
-) {
+            override fun areContentsTheSame(oldItem: ServiceItem, newItem: ServiceItem) =
+                oldItem == newItem
+        }
+    ) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ServiceItemBinding.inflate(inflater, parent, false)
@@ -25,14 +28,20 @@ class ServicesListAdapter : ListAdapter<ServiceItem, ServicesListAdapter.VH>(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), onQuantityChanged)
     }
 
     class VH(private val binding: ServiceItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ServiceItem) {
+        fun bind(item: ServiceItem, onQuantityChanged: () -> Unit) {
             binding.serviceItem = item
+            binding.quantityTV.setText(String.format(Locale.ENGLISH, "%.3f", item.quantity))
+
+            binding.quantityTV.addTextChangedListener {
+                item.quantity = if (it?.isEmpty() == false) it.toString().toDouble() else 0.0
+                onQuantityChanged()
+            }
         }
     }
 }

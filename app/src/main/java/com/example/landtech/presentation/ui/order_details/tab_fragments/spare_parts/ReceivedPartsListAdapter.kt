@@ -63,7 +63,7 @@ class ReceivedPartsListAdapter(private val onReceivedChanged: () -> Unit) :
 
                 override fun afterTextChanged(s: Editable?) {
                     try {
-                        item.received = if (s?.isEmpty() == true) 0.0 else s.toString().toDouble()
+                        item.received = if (s?.isEmpty() == false) s.toString().toDouble() else 0.0
                         onReceivedChanged()
                     } catch (_: Exception) {
                     }

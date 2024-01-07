@@ -42,7 +42,8 @@ data class ReturnedPartsItemDb(
         number,
         returned,
         received,
-        false
+        false,
+        isSaved = true
     )
 
     fun toDtoModel() = ReturnedPartsItemDto(

@@ -96,7 +96,9 @@ data class OrderAggregate(
             needToCreateGuaranteeOrder = order.needToCreateGuaranteeOrder,
             workHasNoGuarantee = order.workHasNoGuarantee,
             clientRejectedToSign = order.clientRejectedToSign,
-            partsAreReceived = order.partsAreReceived
+            partsAreReceived = order.partsAreReceived,
+            isMainUser = order.isMainUser,
+            workStarted = order.workStarted
         )
     }
 

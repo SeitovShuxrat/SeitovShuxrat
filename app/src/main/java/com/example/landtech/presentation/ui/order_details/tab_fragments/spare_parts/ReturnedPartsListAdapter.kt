@@ -78,7 +78,21 @@ class ReturnedPartsListAdapter(
                 }
 
                 override fun afterTextChanged(s: Editable?) {
-                    onQuantityChanged(item, s.toString().toDouble())
+                    val quantity = try {
+                        s.toString().toDouble()
+                    } catch (_: Exception) {
+                        0.0
+                    }
+
+                    if (quantity == 0.0 && !item.isSaved) {
+                        binding.returnedTV.error = "Нельзя устанавливать количество 0!"
+                    } else if (quantity > item.maxQuantity  && !item.isSaved) {
+                        binding.returnedTV.error =
+                            "Нельзя устанавливать количество больше чем принято!"
+
+                    }
+
+                    onQuantityChanged(item, quantity)
                 }
             })
             viewBinderHelper.bind(binding.swipeRevealLayout, item.id)

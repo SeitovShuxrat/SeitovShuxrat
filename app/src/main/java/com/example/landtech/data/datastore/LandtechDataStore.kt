@@ -26,16 +26,19 @@ class LandtechDataStore(private val preferenceDatastore: DataStore<Preferences>)
     private val PASSWORD_KEY = stringPreferencesKey("password")
     private val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
     private val USER_TOKEN = stringPreferencesKey("USER_TOKEN")
+    private val SERVER_KEY = stringPreferencesKey("server")
 
     val user: Flow<String?> = getPreferenceValue(preferenceDatastore, USER_KEY)
     val password: Flow<String?> = getPreferenceValue(preferenceDatastore, PASSWORD_KEY)
     val isLoggedIn: Flow<Boolean?> = getPreferenceValue(preferenceDatastore, IS_LOGGED_IN_KEY)
     val token: Flow<String?> = getPreferenceValue(preferenceDatastore, USER_TOKEN)
+    val server: Flow<String?> = getPreferenceValue(preferenceDatastore, SERVER_KEY)
 
-    suspend fun saveUserCredentials(user: String, password: String) {
+    suspend fun saveUserCredentials(user: String, password: String, server: String) {
         preferenceDatastore.edit { preferences ->
             preferences[USER_KEY] = user
             preferences[PASSWORD_KEY] = password
+            preferences[SERVER_KEY] = server
         }
     }
 

@@ -64,8 +64,8 @@ class LandtechRepositoryImpl(
         return dao.getAllExploitationObjects()
     }
 
-    override suspend fun userLogin(user: String, password: String): Boolean {
-        dataStore.saveUserCredentials(user, password)
+    override suspend fun userLogin(user: String, password: String, server: String): Boolean {
+        dataStore.saveUserCredentials(user, password, server)
         val success = checkUserLogin()
         dataStore.saveUserLoggedIn(success)
         return success
@@ -99,7 +99,7 @@ class LandtechRepositoryImpl(
     override suspend fun userLogout() {
         uploadOrdersWithFiles()
 
-        dataStore.saveUserCredentials(user = "", password = "")
+        dataStore.saveUserCredentials(user = "", password = "", server = "")
         dataStore.saveUserLoggedIn(false)
         dataStore.saveUserToken("")
 
@@ -154,6 +154,8 @@ class LandtechRepositoryImpl(
 
             val ordersRemote = ordersResponse.body()
 
+            val dbIsEmpty = dao.isEmpty()
+
             ordersRemote?.forEach {
                 val orderDb = dao.getOrder(it.guid)
                 if (orderDb?.order?.isModified == true) return@forEach
@@ -197,7 +199,8 @@ class LandtechRepositoryImpl(
                         workDescription = it.workDescription,
                         quickReport = it.quickReport,
                         clientRejectedToSign = it.clientRejectedToSign,
-                        partsAreReceived = it.partsAreReceived
+                        partsAreReceived = it.partsAreReceived,
+                        isMainUser = it.isMainUser
                     )
                 } else {
                     OrderDb(
@@ -217,7 +220,8 @@ class LandtechRepositoryImpl(
                         workDescription = it.workDescription,
                         quickReport = it.quickReport,
                         clientRejectedToSign = it.clientRejectedToSign,
-                        partsAreReceived = it.partsAreReceived
+                        partsAreReceived = it.partsAreReceived,
+                        isMainUser = it.isMainUser
                     )
                 }
 
@@ -250,11 +254,11 @@ class LandtechRepositoryImpl(
                     engineerItems
                 )
 
-                if (orderDb == null)
+                if ((!dbIsEmpty && orderDb == null) || (dbIsEmpty && orderDbNew.status == OrderStatus.NEW.value))
                     showOrderCreatedNotification(orderNumber = orderDbNew.number, context)
             }
         } catch (e: Exception) {
-                  e.printStackTrace()
+            e.printStackTrace()
         }
 
         return true
@@ -397,9 +401,9 @@ class LandtechRepositoryImpl(
         return result.isSuccessful
     }
 
-    override suspend fun getAllSpareParts(): List<SparePartDto> {
+    override suspend fun getAllSpareParts(showOnlyRemainders: Boolean): List<SparePartDto> {
         try {
-            return api.getSpareParts()
+            return api.getSpareParts(showOnlyRemainders)
         } catch (e: Exception) {
             e.printStackTrace()
         }

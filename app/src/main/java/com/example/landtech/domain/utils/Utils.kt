@@ -15,6 +15,8 @@ import android.provider.OpenableColumns
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import com.example.landtech.LandtechApp
 import com.example.landtech.R
 import com.example.landtech.data.common.Constants
@@ -99,4 +101,15 @@ fun showOrderCreatedNotification(orderNumber: String, applicationContext: Contex
             notify(Constants.ORDER_CREATED_NOTIFICATION_ID, builder.build())
         }
     }
+}
+
+class PairLiveData<A, B>(first: LiveData<A>, second: LiveData<B>) : MediatorLiveData<Pair<A?, B?>>() {
+    init {
+        addSource(first) { value = it to second.value }
+        addSource(second) { value = first.value to it }
+    }
+}
+
+fun <A, B> LiveData<A>.combine(other: LiveData<B>): PairLiveData<A, B> {
+    return PairLiveData(this, other)
 }

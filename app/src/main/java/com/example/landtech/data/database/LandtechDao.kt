@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LandtechDao {
+
+    @Query("SELECT (SELECT COUNT(*) FROM orders) == 0")
+    fun isEmpty(): Boolean
+
     @Transaction
     @Query("SELECT * FROM orders ORDER BY date DESC")
     fun getAllOrders(): Flow<List<OrderAggregate>>

@@ -73,4 +73,10 @@ class OrdersViewModel @Inject constructor(
     fun setStatusFilter(status: OrderStatus?) {
         ordersFilterValue.value = status
     }
+
+    fun logout() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.userLogout()
+        }
+    }
 }

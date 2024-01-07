@@ -36,6 +36,15 @@ class LoginViewModel @Inject constructor(private val repository: LandtechReposit
     var passwordErrorMsg by mutableStateOf("")
         private set
 
+    var server by mutableStateOf("")
+        private set
+
+    var serverError by mutableStateOf(false)
+        private set
+
+    var serverErrorMsg by mutableStateOf("")
+        private set
+
     var userLoggedIn by mutableStateOf(true)
         private set
 
@@ -55,7 +64,11 @@ class LoginViewModel @Inject constructor(private val repository: LandtechReposit
                 passwordError = false
                 passwordErrorMsg = ""
             }
-
+            is LoginScreenEvent.OnServerChange -> {
+                server = event.server
+                serverError = false
+                serverErrorMsg = ""
+            }
             is LoginScreenEvent.OnLoginButtonClick -> login()
         }
     }
@@ -76,8 +89,14 @@ class LoginViewModel @Inject constructor(private val repository: LandtechReposit
             return
         }
 
+        if (server.isBlank()) {
+            serverError = true
+            serverErrorMsg = fieldErrorMsg
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
-            val loginSuccess = repository.userLogin(user, password)
+            val loginSuccess = repository.userLogin(user, password, server)
             withContext(Dispatchers.Main) {
                 if (loginSuccess)
                     _uiEvent.send(UiEvent.Navigate(LoginFragmentDirections.actionLoginFragmentToOrdersFragment()))

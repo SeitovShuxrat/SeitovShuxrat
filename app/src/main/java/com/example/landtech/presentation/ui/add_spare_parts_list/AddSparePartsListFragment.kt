@@ -72,6 +72,7 @@ class AddSparePartsListFragment : Fragment() {
                 return when (menuItem.itemId) {
                     R.id.menu_save -> {
                         viewModel.saveNewSparePartsList(args.isDiagnose)
+                        findNavController().navigateUp()
                         true
                     }
 

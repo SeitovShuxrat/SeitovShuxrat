@@ -36,5 +36,6 @@ data class OrderDto(
     var needToCreateGuaranteeOrder: Boolean = false,
     var workHasNoGuarantee: Boolean = false,
     var clientRejectedToSign: Boolean = false,
-    var partsAreReceived: Boolean = false
+    var partsAreReceived: Boolean = false,
+    var isMainUser: Boolean = false,
 )

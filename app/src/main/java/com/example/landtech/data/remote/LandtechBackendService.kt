@@ -22,6 +22,7 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 
@@ -43,7 +44,7 @@ interface LandtechServiceAPI {
     suspend fun getExploitationObjects(): List<ExploitationObjectDto>
 
     @GET("spare_parts")
-    suspend fun getSpareParts(): List<SparePartDto>
+    suspend fun getSpareParts(@Query("onlyRemainders") showOnlyRemainders: Boolean): List<SparePartDto>
 
     @POST("orders")
     suspend fun sendOrder(@Body order: OrderDto): Response<Unit>
@@ -76,7 +77,7 @@ class LandtechAPI(dataStore: LandtechDataStore) {
 
     private val retrofit: Retrofit = Retrofit.Builder()
         .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .baseUrl(Constants.BASE_URL)
+        .baseUrl("http://localhost")
         .client(httpClient.build())
         .build()
 

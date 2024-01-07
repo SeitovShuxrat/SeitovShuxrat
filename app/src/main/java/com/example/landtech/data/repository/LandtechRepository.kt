@@ -4,7 +4,6 @@ import com.example.landtech.data.database.models.EngineerDb
 import com.example.landtech.data.database.models.ExploitationObjectAggregate
 import com.example.landtech.data.database.models.NewSparePartDb
 import com.example.landtech.data.database.models.OrderAggregate
-import com.example.landtech.data.database.models.TransferOrderDb
 import com.example.landtech.data.remote.dto.NewSparePartDto
 import com.example.landtech.data.remote.dto.SparePartDto
 import com.example.landtech.domain.models.Order
@@ -20,7 +19,7 @@ interface LandtechRepository {
 
     fun getAllExploitationObjects(): Flow<List<ExploitationObjectAggregate>>
 
-    suspend fun userLogin(user: String, password: String): Boolean
+    suspend fun userLogin(user: String, password: String, server: String): Boolean
 
     suspend fun userLogout()
 
@@ -46,7 +45,7 @@ interface LandtechRepository {
 
     suspend fun sendOrderFiles(order: OrderAggregate): Boolean
 
-    suspend fun getAllSpareParts(): List<SparePartDto>
+    suspend fun getAllSpareParts(showOnlyRemainders: Boolean): List<SparePartDto>
 
     suspend fun insertNewSpareParts(spareParts: List<NewSparePartDb>)
 

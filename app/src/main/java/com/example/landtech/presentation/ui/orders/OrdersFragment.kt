@@ -52,7 +52,7 @@ class OrdersFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.menu_good_remainders -> {
-                        findNavController().navigate(OrdersFragmentDirections.actionOrdersFragmentToSelectSparePartFragment())
+                        findNavController().navigate(OrdersFragmentDirections.actionOrdersFragmentToSelectSparePartFragment(true))
                         true
                     }
 
@@ -62,17 +62,28 @@ class OrdersFragment : Fragment() {
                     }
 
                     R.id.menu_on_negotiation -> {
-                        viewModel.setStatusFilter(OrderStatus.PENDING_APPROVAL)
+                        viewModel.setStatusFilter(OrderStatus.NEW)
                         true
                     }
 
                     R.id.menu_being_done -> {
-                        viewModel.setStatusFilter(OrderStatus.IN_RESERVE)
+                        viewModel.setStatusFilter(OrderStatus.IN_WORK)
+                        true
+                    }
+
+                    R.id.menu_ended -> {
+                        viewModel.setStatusFilter(OrderStatus.ENDED)
                         true
                     }
 
                     R.id.menu_closed -> {
                         viewModel.setStatusFilter(OrderStatus.CLOSED)
+                        true
+                    }
+
+                    R.id.menu_logout -> {
+                        viewModel.logout()
+                        findNavController().navigateUp()
                         true
                     }
 

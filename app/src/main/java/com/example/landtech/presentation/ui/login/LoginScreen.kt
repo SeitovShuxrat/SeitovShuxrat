@@ -106,13 +106,10 @@ fun LoginScreen(
                     visualTransformation = if (showPassword) VisualTransformation.None
                     else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done,
+                        imeAction = ImeAction.Next,
                         keyboardType = KeyboardType.Password
                     ),
-                    keyboardActions = KeyboardActions(onDone = {
-                        viewModel.onEvent(LoginScreenEvent.OnLoginButtonClick)
-                        defaultKeyboardAction(ImeAction.Done)
-                    }),
+
                     isError = viewModel.passwordError,
                     supportingText = {
                         Text(text = viewModel.passwordErrorMsg)
@@ -137,6 +134,31 @@ fun LoginScreen(
                     label = { Text(text = "Пароль") },
                     onValueChange = {
                         viewModel.onEvent(LoginScreenEvent.OnPasswordChange(it))
+                    })
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TextField(modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        viewModel.onEvent(LoginScreenEvent.OnLoginButtonClick)
+                        defaultKeyboardAction(ImeAction.Done)
+                    }),
+                    isError = viewModel.serverError,
+                    supportingText = {
+                        Text(text = viewModel.serverErrorMsg)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painterResource(id = R.drawable.cloud),
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    value = viewModel.server,
+                    label = { Text(text = "Сервер") },
+                    onValueChange = {
+                        viewModel.onEvent(LoginScreenEvent.OnServerChange(it))
                     })
 
                 Spacer(modifier = Modifier.height(8.dp))
