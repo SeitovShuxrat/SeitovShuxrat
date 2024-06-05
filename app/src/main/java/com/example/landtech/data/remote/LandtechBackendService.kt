@@ -7,6 +7,7 @@ import com.example.landtech.data.remote.dto.EngineerDto
 import com.example.landtech.data.remote.dto.ExploitationObjectDto
 import com.example.landtech.data.remote.dto.NewSparePartDto
 import com.example.landtech.data.remote.dto.OrderDto
+import com.example.landtech.data.remote.dto.OrderImages
 import com.example.landtech.data.remote.dto.SparePartDto
 import com.example.landtech.data.remote.dto.TransferOrderDto
 import com.squareup.moshi.Moshi
@@ -44,7 +45,10 @@ interface LandtechServiceAPI {
     suspend fun getExploitationObjects(): List<ExploitationObjectDto>
 
     @GET("spare_parts")
-    suspend fun getSpareParts(@Query("onlyRemainders") showOnlyRemainders: Boolean): List<SparePartDto>
+    suspend fun getSpareParts(
+        @Query("onlyRemainders") showOnlyRemainders: Boolean,
+        @Query("orderId") orderId: String? = null
+    ): List<SparePartDto>
 
     @POST("orders")
     suspend fun sendOrder(@Body order: OrderDto): Response<Unit>
@@ -63,8 +67,12 @@ interface LandtechServiceAPI {
     suspend fun uploadOrderFiles(
         @Part("order_id") id: RequestBody,
         @Part image: MultipartBody.Part?,
-        @Part signImage: MultipartBody.Part?
+        @Part signImage: MultipartBody.Part?,
+        @Part recording: MultipartBody.Part?
     ): Response<Unit>
+
+    @POST("order_images")
+    suspend fun sendOrderImagesList(@Body orderImages: OrderImages)
 }
 
 class LandtechAPI(dataStore: LandtechDataStore) {

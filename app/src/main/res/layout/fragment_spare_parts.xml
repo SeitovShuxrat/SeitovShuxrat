@@ -366,6 +366,7 @@
             android:text="Создать документы перемещения"
             android:textColor="@color/purple_700"
             android:textSize="16sp"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/addReturnPart"
             app:layout_constraintStart_toEndOf="@+id/addReturnPart"
             app:layout_constraintTop_toTopOf="@+id/addReturnPart" />

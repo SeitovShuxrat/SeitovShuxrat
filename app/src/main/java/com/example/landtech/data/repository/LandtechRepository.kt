@@ -1,7 +1,9 @@
 package com.example.landtech.data.repository
 
+import androidx.lifecycle.LiveData
 import com.example.landtech.data.database.models.EngineerDb
 import com.example.landtech.data.database.models.ExploitationObjectAggregate
+import com.example.landtech.data.database.models.ImagesDb
 import com.example.landtech.data.database.models.NewSparePartDb
 import com.example.landtech.data.database.models.OrderAggregate
 import com.example.landtech.data.remote.dto.NewSparePartDto
@@ -13,6 +15,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface LandtechRepository {
     val userLoggedIn: Flow<Boolean?>
+    val locationOrderId: Flow<String?>
+
     fun getAllOrders(status: OrderStatus?): Flow<List<OrderAggregate>>
 
     fun getAllEngineers(): Flow<List<EngineerDb>>
@@ -45,7 +49,10 @@ interface LandtechRepository {
 
     suspend fun sendOrderFiles(order: OrderAggregate): Boolean
 
-    suspend fun getAllSpareParts(showOnlyRemainders: Boolean): List<SparePartDto>
+    suspend fun getAllSpareParts(
+        showOnlyRemainders: Boolean,
+        orderId: String? = null
+    ): List<SparePartDto>
 
     suspend fun insertNewSpareParts(spareParts: List<NewSparePartDb>)
 
@@ -55,4 +62,11 @@ interface LandtechRepository {
 
     suspend fun getTransferOrderListForCreation(id: String): List<TransferOrder>
 
+    fun getImages(orderId: String): LiveData<List<ImagesDb>?>
+
+    suspend fun addImage(image: ImagesDb)
+
+    suspend fun removeImage(image: ImagesDb)
+
+    suspend fun sendImages(order: OrderAggregate)
 }

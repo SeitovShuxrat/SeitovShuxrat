@@ -1,8 +1,11 @@
 package com.example.landtech.presentation.ui.order_details
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -15,7 +18,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,12 +25,14 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.landtech.R
 import com.example.landtech.databinding.FragmentOrderDetailsBinding
 import com.example.landtech.domain.models.ScreenStatus
-import com.github.dhaval2404.imagepicker.ImagePicker
+import com.example.landtech.domain.services.LocationTrackingService
+import com.example.landtech.domain.utils.isServiceRunning
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -44,34 +48,9 @@ class OrderDetailsFragment : Fragment() {
     private val args: OrderDetailsFragmentArgs by navArgs()
     private val viewModel: OrderDetailsViewModel by activityViewModels()
 
-    private val startForProfileImageResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            val resultCode = result.resultCode
-            val data = result.data
-
-            when (resultCode) {
-                Activity.RESULT_OK -> {
-                    //Image Uri will not be null for RESULT_OK
-                    val fileUri = data?.data!!
-                    viewModel.setImage(fileUri)
-                }
-
-                ImagePicker.RESULT_ERROR -> {
-                    Toast.makeText(requireContext(), ImagePicker.getError(data), Toast.LENGTH_SHORT)
-                        .show()
-                }
-
-                else -> {
-                    Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
     // FusedLocationProviderClient - Main class for receiving location updates.
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
-    private lateinit var locationStartCallback: LocationCallback
-    private lateinit var locationEndCallback: LocationCallback
     private lateinit var locationTripEndCallback: LocationCallback
 
     // This will store current location info
@@ -145,47 +124,44 @@ class OrderDetailsFragment : Fragment() {
             }
         }.attach()
 
+        val receiverStartLocation = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val startLocationLatitude = intent?.getDoubleExtra("lat", 0.0) ?: 0.0
+                val startLocationLongitude = intent?.getDoubleExtra("lng", 0.0) ?: 0.0
+
+                viewModel.setStartLocation(startLocationLatitude, startLocationLongitude)
+            }
+        }
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(
+                receiverStartLocation,
+                IntentFilter(LocationTrackingService.BROADCAST_START_LOCATION)
+            )
+
+        val receiverEndLocation = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val startLocationLatitude = intent?.getDoubleExtra("startLat", 0.0) ?: 0.0
+                val startLocationLongitude = intent?.getDoubleExtra("startLng", 0.0) ?: 0.0
+                val endLocationLatitude = intent?.getDoubleExtra("lat", 0.0) ?: 0.0
+                val endLocationLongitude = intent?.getDoubleExtra("lng", 0.0) ?: 0.0
+                val distance = intent?.getDoubleExtra("distance", 0.0) ?: 0.0
+
+                viewModel.setStartLocation(startLocationLatitude, startLocationLongitude)
+                viewModel.setEndLocation(endLocationLatitude, endLocationLongitude, distance)
+            }
+        }
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(
+                receiverEndLocation,
+                IntentFilter(LocationTrackingService.BROADCAST_END_LOCATION)
+            )
+
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(requireActivity())
         locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
             10000
         ).build()
-
-        locationStartCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                for (location in locationResult.locations) {
-                    location?.let {
-                        viewModel.setStartLocation(it)
-                        Toast.makeText(
-                            requireContext(),
-                            "Location=(${it.latitude}, ${it.longitude})",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-
-                fusedLocationProviderClient.removeLocationUpdates(locationStartCallback)
-            }
-        }
-
-        locationEndCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                for (location in locationResult.locations) {
-                    currentLocation = location
-                    currentLocation?.let {
-                        viewModel.setEndLocation(it)
-                        Toast.makeText(
-                            requireContext(),
-                            "Location=(${it.latitude}, ${it.longitude})",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-
-                fusedLocationProviderClient.removeLocationUpdates(locationEndCallback)
-            }
-        }
 
         locationTripEndCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
@@ -208,7 +184,15 @@ class OrderDetailsFragment : Fragment() {
 
         binding.apply {
             this@OrderDetailsFragment.viewModel.isMainUser.observe(viewLifecycleOwner) {
-                setEnabled(it)
+                setEnabled(it, this@OrderDetailsFragment.viewModel.isInEngineersList.value)
+            }
+
+            this@OrderDetailsFragment.viewModel.isInEngineersList.observe(viewLifecycleOwner) {
+                setEnabled(this@OrderDetailsFragment.viewModel.isMainUser.value, it)
+            }
+
+            this@OrderDetailsFragment.viewModel.worksHaveEnded.observe(viewLifecycleOwner) {
+                if (it) setWorksEnded()
             }
 
             this@OrderDetailsFragment.viewModel.screenStatus.observe(viewLifecycleOwner) {
@@ -220,16 +204,70 @@ class OrderDetailsFragment : Fragment() {
                     progressBar.visibility = View.VISIBLE
                 }
             }
-
+            this@OrderDetailsFragment.viewModel.locationOrderId.observe(viewLifecycleOwner) {}
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@OrderDetailsFragment.viewModel
             startTripBtn.setOnClickListener {
-                getLastLocation(locationStartCallback)
+                if (isServiceRunning(
+                        requireActivity().applicationContext,
+                        LocationTrackingService::class.java
+                    )
+                ) {
+                    Toast.makeText(requireContext(), "Сервис уже работает!", Toast.LENGTH_SHORT)
+                        .show()
+                    return@setOnClickListener
+                }
+
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    Toast.makeText(requireContext(), "Отслеживаем локацию", Toast.LENGTH_SHORT)
+                        .show()
+                    Intent(
+                        requireActivity().applicationContext,
+                        LocationTrackingService::class.java
+                    ).apply {
+                        action = LocationTrackingService.ACTION_START
+                        putExtra("orderId", args.order.id)
+                        requireActivity().startService(this)
+                    }
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
             }
 
+            voiceDefinitionBtn.setOnClickListener {
+//                val language = "ru-RU"
+//
+//                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+//                intent.putExtra(
+//                    RecognizerIntent.EXTRA_LANGUAGE_MODEL, language
+//                )
+//                intent.putExtra(
+//                    RecognizerIntent.EXTRA_LANGUAGE, language
+//                )
+//
+//                startSpeechToText.launch(intent)
+                this@OrderDetailsFragment.viewModel.order.value?.id?.let {
+                    findNavController().navigate(
+                        OrderDetailsFragmentDirections.actionOrderDetailsFragmentToAudioRecordFragment(
+                            it
+                        )
+                    )
+                }
+            }
             arrivalBtn.setOnClickListener {
                 if (this@OrderDetailsFragment.viewModel.startLocationIsSet()) {
-                    getLastLocation(locationEndCallback)
+                    Intent(
+                        requireActivity().applicationContext,
+                        LocationTrackingService::class.java
+                    ).apply {
+                        action = LocationTrackingService.ACTION_STOP
+                        putExtra("orderId", args.order.id)
+                        requireActivity().startService(this)
+                    }
                 } else {
                     Toast.makeText(
                         requireContext(),
@@ -243,7 +281,7 @@ class OrderDetailsFragment : Fragment() {
                 this@OrderDetailsFragment.viewModel.setWorkStart()
                 Toast.makeText(
                     requireContext(),
-                    "Начала работы зафиксирована!",
+                    "Начало работы зафиксировано!",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -254,7 +292,7 @@ class OrderDetailsFragment : Fragment() {
                 } else {
                     Toast.makeText(
                         requireContext(),
-                        "Начало работы не зафиксирована!",
+                        "Начало работы не зафиксировано!",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -273,37 +311,53 @@ class OrderDetailsFragment : Fragment() {
             }
 
             addImageBtn.setOnClickListener {
-                ImagePicker.with(this@OrderDetailsFragment)
-                    .galleryMimeTypes(
-                        mimeTypes = arrayOf(
-                            "image/png",
-                            "image/jpg",
-                            "image/jpeg"
+                this@OrderDetailsFragment.viewModel.order.value?.id?.let { orderId ->
+                    findNavController().navigate(
+                        OrderDetailsFragmentDirections.actionOrderDetailsFragmentToImagesFragment(
+                            orderId
                         )
-                    ).createIntent { intent ->
-                        startForProfileImageResult.launch(intent)
-                    }
+                    )
+                }
             }
 
             addAutoBtn.setOnClickListener {
-                findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToExploitationObjectSelectFragment())
+                findNavController().navigate(
+                    OrderDetailsFragmentDirections.actionOrderDetailsFragmentToExploitationObjectSelectFragment(
+                        false
+                    )
+                )
             }
         }
     }
 
-    private fun setEnabled(isMainUser: Boolean?) {
+    private fun setEnabled(isMainUser: Boolean?, isInEngineersList: Boolean?) {
+        val isInEngineers = isInEngineersList ?: false
+
         isMainUser?.let {
             binding.apply {
-                startTripBtn.isEnabled = it
-                arrivalBtn.isEnabled = it
-                startWorkBtn.isEnabled = it
-                endWorkBtn.isEnabled = it
+                startTripBtn.isEnabled = it || isInEngineers
+                arrivalBtn.isEnabled = it || isInEngineers
+                startWorkBtn.isEnabled = it || isInEngineers
+                endWorkBtn.isEnabled = it || isInEngineers
                 endAllWorks.isEnabled = it
+                voiceDefinitionBtn.isEnabled = it
                 endTripBtn.isEnabled = it
                 addAutoBtn.isEnabled = it
                 addImageBtn.isEnabled = it
-                arrivalBtn.isEnabled = it
             }
+        }
+    }
+
+    private fun setWorksEnded() {
+        binding.apply {
+            startTripBtn.isEnabled = false
+            arrivalBtn.isEnabled = false
+            startWorkBtn.isEnabled = false
+            endWorkBtn.isEnabled = false
+            endAllWorks.isEnabled = false
+            endTripBtn.isEnabled = false
+            addAutoBtn.isEnabled = false
+            addImageBtn.isEnabled = false
         }
     }
 
@@ -314,14 +368,18 @@ class OrderDetailsFragment : Fragment() {
                 setMessage("Заказ был изменен. Хотите сохранить изменения?")
                 setPositiveButton("Да") { _, _ ->
                     saveOrder()
+                    viewModel.clearAddedUsedParts()
+                    findNavController().navigateUp()
                 }
                 setNegativeButton("Нет") { _, _ ->
                     viewModel.reset()
+                    viewModel.clearAddedUsedParts()
                     findNavController().navigateUp()
                 }
                 show()
             }
         } else {
+            viewModel.clearAddedUsedParts()
             findNavController().navigateUp()
         }
 
@@ -348,7 +406,11 @@ class OrderDetailsFragment : Fragment() {
     private fun saveOrder() {
         val result = viewModel.saveOrder()
         if (result)
-            findNavController().navigateUp()
+            Toast.makeText(
+                requireContext(),
+                "Заказ сохранен!",
+                Toast.LENGTH_LONG
+            ).show()
         else {
             Toast.makeText(
                 requireContext(),
@@ -356,6 +418,5 @@ class OrderDetailsFragment : Fragment() {
                 Toast.LENGTH_LONG
             ).show()
         }
-
     }
 }

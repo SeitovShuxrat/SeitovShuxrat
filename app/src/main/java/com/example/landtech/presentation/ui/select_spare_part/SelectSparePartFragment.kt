@@ -33,7 +33,7 @@ class SelectSparePartFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.fetchSparePartList(args.showOnlyRemainders)
+        viewModel.fetchSparePartList(args.showOnlyRemainders, args.orderId)
 
         val menuHost: MenuHost = requireActivity()
 
@@ -88,5 +88,10 @@ class SelectSparePartFragment : Fragment() {
             }
         }
 
+    }
+
+    override fun onDestroy() {
+        viewModel.clearSparePartsList()
+        super.onDestroy()
     }
 }

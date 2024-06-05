@@ -37,7 +37,7 @@ class AddSparePartDetailFragment : Fragment() {
             }
 
             selectGoodsBtn.setOnClickListener {
-                findNavController().navigate(AddSparePartDetailFragmentDirections.actionAddSparePartDetailFragmentToSelectSparePartFragment(false))
+                findNavController().navigate(AddSparePartDetailFragmentDirections.actionAddSparePartDetailFragmentToSelectSparePartFragment(true, null))
             }
 
             cancelBtn.setOnClickListener {

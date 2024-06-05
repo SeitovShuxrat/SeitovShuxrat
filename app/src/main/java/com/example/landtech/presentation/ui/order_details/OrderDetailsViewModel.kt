@@ -1,15 +1,12 @@
 package com.example.landtech.presentation.ui.order_details
 
 import android.location.Location
-import android.net.Uri
 import android.text.Editable
 import android.text.TextWatcher
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
@@ -32,7 +29,6 @@ import com.example.landtech.domain.utils.makeString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,11 +38,12 @@ import javax.inject.Inject
 @HiltViewModel
 class OrderDetailsViewModel @Inject constructor(private val repository: LandtechRepository) :
     ViewModel() {
-    var isRecording = false
-    var recordFile: File? = null
 
     private val _isMainUser = MutableLiveData(true)
     val isMainUser: LiveData<Boolean> get() = _isMainUser
+
+    private val _isInEngineersList = MutableLiveData(false)
+    val isInEngineersList: LiveData<Boolean> get() = _isInEngineersList
 
     private val _screenStatus = MutableLiveData(ScreenStatus.READY)
     val screenStatus: LiveData<ScreenStatus> get() = _screenStatus
@@ -57,6 +54,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     private val _services = MutableLiveData<List<ServiceItem>>(listOf())
     val services: LiveData<List<ServiceItem>> get() = _services
 
+    private var currentServiceItem: ServiceItem? = null
 
     private val _returnedParts = MutableLiveData<List<ReturnedPartsItem>>(listOf())
     val returnedParts: LiveData<List<ReturnedPartsItem>> get() = _returnedParts
@@ -64,13 +62,21 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     private val _usedParts = MutableLiveData<List<UsedPartsItem>>(listOf())
     val usedParts: LiveData<List<UsedPartsItem>> get() = _usedParts
 
+    private val addedUsedParts = mutableListOf<UsedPartsItem>()
+
     private var _usedPartItemAdd = MutableLiveData<UsedPartsItem?>(null)
     val usedPartItemAdd: LiveData<UsedPartsItem?> = _usedPartItemAdd
+
+    private var _worksHaveEnded = MutableLiveData(false)
+    val worksHaveEnded: LiveData<Boolean> = _worksHaveEnded
+
+    val locationOrderId = repository.locationOrderId.asLiveData()
 
     var clientRejectedToSign = false
         private set
 
     private val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+    private var showOnlyRemainders = false
 
     val quickReportTextWatcher = getTextWatcher {
         isModified = true
@@ -100,16 +106,16 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     }
 
     private val _returnedItemsError = MutableLiveData(false)
-    val returnedItemsError get() = _returnedItemsError
-
-    val returnedQuantityWatcher = getTextWatcher {
-        isModified = true
-
-        _order.value?.apply {
-            isModified = true
-
-        }
-    }
+//    val returnedItemsError get() = _returnedItemsError
+//
+//    val returnedQuantityWatcher = getTextWatcher {
+//        isModified = true
+//
+//        _order.value?.apply {
+//            isModified = true
+//
+//        }
+//    }
 
     val addUsedItemQuantityWatcher = getTextWatcher {
         try {
@@ -128,18 +134,31 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     }
 
     private var _sparePartsSearchQuery = MutableLiveData("")
-    val sparePartsSearchQuery: LiveData<String> = _sparePartsSearchQuery
+    private val sparePartsSearchQuery: LiveData<String> = _sparePartsSearchQuery
 
     private var _sparePartsList = MutableLiveData<List<SparePartDto>>()
     val sparePartsList: LiveData<List<SparePartDto>> =
         sparePartsSearchQuery.combine(_sparePartsList).switchMap { pair ->
-            val list = pair.second ?: listOf()
+            val list = mutableListOf<SparePartDto>()
+            pair.second?.forEach {
+                var quantity = it.quantity
+                val foundAddedItems = addedUsedParts.filter { up -> up.number == it.number }
+                foundAddedItems.forEach { found ->
+                    quantity -= found.quantity
+                }
+
+                if (quantity > 0)
+                    list.add(it.copy(quantity = quantity))
+                else
+                    list.add(it.copy(quantity = 0.0))
+            }
             val query = (pair.first ?: "").lowercase()
 
-            MutableLiveData(if (query.isEmpty()) list
-            else list.filter {
-                it.name.lowercase().contains(query) || it.number.lowercase().contains(query)
-            })
+            MutableLiveData(
+                if (query.isEmpty()) list
+                else list.filter {
+                    it.name.lowercase().contains(query) || it.number.lowercase().contains(query)
+                })
         }
 
     private var _newAddedSpareParts = MutableLiveData<List<NewSparePartDto>>()
@@ -153,7 +172,6 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     private val _transferOrdersForSelection = MutableLiveData<List<TransferOrder>>(listOf())
     val transferOrdersForSelection = _transferOrdersForSelection
 
-
     var isModified = false
         private set
 
@@ -163,31 +181,34 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         _usedParts.value = order.usedParts
         _returnedParts.value = order.returnedParts
         _isMainUser.value = order.isMainUser
+        _worksHaveEnded.value = order.status == OrderStatus.ENDED.value
+        _isInEngineersList.value = order.isInEngineersList
 
+        recalculateReceivedPartsRemainders()
         clientRejectedToSign = order.clientRejectedToSign
     }
 
-    fun setStartLocation(location: Location) {
+    fun setStartLocation(lat: Double, lng: Double) {
         isModified = true
         order.value?.apply {
             isModified = true
             driveStartDate = formatter.format(Date())
-            locationStartLat = location.latitude
-            locationStartLng = location.longitude
+            locationStartLat = lat
+            locationStartLng = lng
             _order.postValue(this)
         }
 
         _screenStatus.value = ScreenStatus.READY
     }
 
-    fun setEndLocation(location: Location) {
+    fun setEndLocation(lat: Double, lng: Double, distance: Double) {
         isModified = true
         val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
         order.value?.apply {
             isModified = true
             driveEndDate = formatter.format(Date())
-            locationLat = location.latitude
-            locationLng = location.longitude
+            locationLat = lat
+            locationLng = lng
 
             val typeOfWork = "Расстояние"
 
@@ -199,8 +220,6 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
             startLocation.latitude = locationStartLat
             startLocation.longitude = locationStartLng
 
-            val distance = location.distanceTo(startLocation)
-
             services.add(
                 ServiceItem(
                     date = driveEndDate.substring(0, 10),
@@ -209,7 +228,10 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
                     engineer = engineer,
                     measureUnit = "км",
                     quantity = distance / 1000.0,
-                    isLaborCost = true
+                    isLaborCost = true,
+                    dateStart = driveStartDate,
+                    dateEnd = driveEndDate,
+                    byCurrentUser = true
                 )
             )
             _order.postValue(this)
@@ -243,21 +265,40 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
             workEndDate = formatter.format(dateEnd)
 
-//            services.removeIf {
-//                it.workType == typeOfWork
-//            }
+            val unfinishedWorkServices = services.filter { it.workType == typeOfWork && !it.ended }
 
-            services.add(
-                ServiceItem(
-                    date = workEndDate.substring(0, 10),
-                    time = workEndDate.substring(11, 19),
-                    workType = typeOfWork,
-                    engineer = engineer,
-                    measureUnit = "ч",
-                    quantity = (difference.toDouble() / (1000 * 60 * 60)),
+            if (unfinishedWorkServices.size == 1) {
+                unfinishedWorkServices[0].run {
+                    engineer = this@apply.engineer
+                    date = workEndDate.substring(0, 10)
+                    time = workEndDate.substring(11, 19)
+                    workType = typeOfWork
+                    measureUnit = "ч"
+                    quantity = (difference.toDouble() / (1000 * 60 * 60))
                     isLaborCost = true
+                    ended = true
+                    this.dateStart = workStartDate
+                    this.dateEnd = workEndDate
+                    byCurrentUser = true
+                }
+            } else {
+                services.add(
+                    ServiceItem(
+                        date = workEndDate.substring(0, 10),
+                        time = workEndDate.substring(11, 19),
+                        workType = typeOfWork,
+                        engineer = engineer,
+                        measureUnit = "ч",
+                        quantity = (difference.toDouble() / (1000 * 60 * 60)),
+                        isLaborCost = true,
+                        ended = true,
+                        dateStart = workStartDate,
+                        dateEnd = workEndDate,
+                        byCurrentUser = true
+                    )
                 )
-            )
+            }
+
             _services.postValue(services)
         }
     }
@@ -268,6 +309,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
             isModified = true
         }
 
+        _worksHaveEnded.value = true
         setStatus(OrderStatus.ENDED)
     }
 
@@ -305,7 +347,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
     fun startLocationIsSet(): Boolean {
         val orderVal = order.value ?: return false
-        return !(orderVal.locationStartLat == 0.0 && orderVal.locationStartLng == 0.0)
+        return locationOrderId.value == orderVal.id
     }
 
     fun startWorkIsSet(): Boolean {
@@ -313,21 +355,17 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         return orderVal.workStartDate.isNotBlank() && orderVal.workStarted
     }
 
-    fun setImage(uri: Uri) {
-        isModified = true
-        _order.value?.apply {
-            isModified = true
-            imageUri = uri
-        }
-    }
-
-    fun setAutoDriveTime(value: Double?) {
+    fun setAutoDriveTime(value: Double?, isEnd: Boolean) {
         if (value == null) return
 
         isModified = true
         _order.value?.apply {
             isModified = true
-            driveTime = value
+            if (isEnd)
+                driveTimeEnd = value
+            else driveTime = value
+
+
             _order.postValue(this)
         }
     }
@@ -346,7 +384,9 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         isModified = true
         _order.value?.apply {
             isModified = true
-            engineersItems.add(EngineersOrderItem(engineer.id, id))
+            engineersItems.add(EngineersOrderItem(engineer, id))
+
+            _order.postValue(this)
         }
     }
 
@@ -404,18 +444,27 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
-    fun setExploitationObject(exploitationObject: ExploitationObject) {
+    fun setExploitationObject(exploitationObject: ExploitationObject, singular: Boolean) {
         isModified = true
 
         _order.value?.apply {
             isModified = true
-            services.forEach {
-                it.autoGN = exploitationObject.number
-                exploitationObject.engineer?.let { eng ->
-                    it.engineer = eng
+
+            if (singular) {
+                currentServiceItem?.autoGN = exploitationObject.number
+//                exploitationObject.engineer?.let { eng ->
+//                    currentServiceItem?.engineer = eng
+//                } //here changed a single service item. Check if it works
+            } else {
+                services.forEach {
+                    it.autoGN = exploitationObject.number
+//                    exploitationObject.engineer?.let { eng ->
+//                        it.engineer = eng
+//                    }
                 }
             }
 
+            _services.postValue(services)
             _order.postValue(this)
         }
     }
@@ -435,9 +484,22 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
         _order.value?.apply {
             isModified = true
-            _usedPartItemAdd.value?.let { usedParts.add(it) }
+            _usedPartItemAdd.value?.let {
+                val foundUsedPartItem = usedParts.find { up ->
+                    up.number == it.number
+                }
+
+                if (foundUsedPartItem == null) {
+                    usedParts.add(it)
+                    addedUsedParts.add(it)
+                } else {
+                    foundUsedPartItem.quantity += it.quantity
+                }
+            }
             _usedParts.postValue(usedParts)
         }
+
+        recalculateReceivedPartsRemainders()
     }
 
     fun onNavigateToAddUsedPart(usedPartItem: UsedPartsItem = UsedPartsItem()) {
@@ -477,20 +539,22 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
             code = sparePart.code
             name = sparePart.name
             number = sparePart.number
+            quantityWarehouse = sparePart.quantity
 
             _usedPartItemAdd.postValue(this)
         }
     }
 
-    fun fetchSparePartList(showOnlyRemainders: Boolean) {
+    fun fetchSparePartList(showOnlyRemainders: Boolean, orderId: String?) {
+        this.showOnlyRemainders = showOnlyRemainders
         viewModelScope.launch(Dispatchers.IO) {
-            _sparePartsList.postValue(repository.getAllSpareParts(showOnlyRemainders))
+            _sparePartsList.postValue(repository.getAllSpareParts(showOnlyRemainders, orderId))
         }
     }
 
     fun setNewSparePartItem(sparePartDto: SparePartDto) {
         _newAddedSparePart.value = _newAddedSparePart.value?.copy(
-            code = sparePartDto.code, name = sparePartDto.name
+            code = sparePartDto.number, name = sparePartDto.name
         )
     }
 
@@ -551,7 +615,7 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
                     maxQuantity = item.received
                 )
             )
-
+            recalculateReceivedPartsRemainders()
             _returnedParts.postValue(returnedParts)
         }
     }
@@ -565,12 +629,26 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
         }
     }
 
+    fun deleteUsedSparePart(item: UsedPartsItem) {
+        val newList = _usedParts.value?.toMutableList()
+        newList?.remove(item)
+        _order.value?.usedParts?.remove(item)
+        addedUsedParts.remove(item)
+
+        newList?.let {
+            _usedParts.value = it
+
+        }
+    }
+
     fun deleteReturnedSparePart(item: ReturnedPartsItem) {
         isModified = true
 
         _order.value?.apply {
             isModified = true
             returnedParts.remove(item)
+
+            recalculateReceivedPartsRemainders()
             _returnedParts.postValue(returnedParts)
         }
     }
@@ -583,6 +661,8 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
 
             item.returned = quantity
         }
+
+        recalculateReceivedPartsRemainders()
     }
 
     fun getTransferOrderListForSelection() {
@@ -605,10 +685,90 @@ class OrderDetailsViewModel @Inject constructor(private val repository: Landtech
     }
 
     fun setUsedPartAddNumber(number: String) {
-        _usedPartItemAdd.value = _usedPartItemAdd.value?.copy(number = number)
+        if (usedPartItemAdd.value?.clientUhm == "Клиент")
+            _usedPartItemAdd.value = _usedPartItemAdd.value?.copy(number = number)
     }
 
     fun setSparePartsListSearch(query: String) {
         _sparePartsSearchQuery.value = query
+    }
+
+    fun setCurrentServiceItem(serviceItem: ServiceItem) {
+        currentServiceItem = serviceItem
+    }
+
+    private fun recalculateReceivedPartsRemainders() {
+        _order.value?.receivedPartsRemainders?.apply {
+            clear()
+            // map.key.first - Warehouse
+            // map.key.second - Number
+            // map.value.first - Name
+            // map.value.second - Quantity received
+            // map.value.third - Code
+            val map = mutableMapOf<Pair<String, String>, Triple<String, Double, String>>()
+
+            _order.value?.receivedParts?.forEach {
+                val key = it.warehouse to it.number
+                map[key] = Triple(it.name, (it.received + (map[key]?.second ?: 0.0)), it.code)
+            }
+
+            map.forEach { (key, value) ->
+                val foundReturnedItems = _returnedParts.value?.filter { returnedItem ->
+                    returnedItem.number == key.second && returnedItem.warehouse == key.first
+                }
+
+                foundReturnedItems?.forEach { returnedItem ->
+                    map[key] =
+                        Triple(
+                            value.first,
+                            (map[key]?.second?.minus(returnedItem.returned) ?: 0.0),
+                            value.third
+                        )
+                }
+
+                val foundUsedItems = _usedParts.value?.filter { usedItem ->
+                    usedItem.number == key.second
+                }
+
+                foundUsedItems?.forEach { usedItem ->
+                    map[key] =
+                        Triple(
+                            value.first,
+                            (map[key]?.second?.minus(usedItem.quantity) ?: 0.0),
+                            value.third
+                        )
+                }
+            }
+
+            map.forEach { mapItem ->
+                if (mapItem.value.second > 0) {
+                    add(
+                        ReceivedPartsItem(
+                            warehouse = mapItem.key.first,
+                            number = mapItem.key.second,
+                            name = mapItem.value.first,
+                            received = mapItem.value.second,
+                            code = mapItem.value.third
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun usedPartQuantityCheck(): Boolean {
+        usedPartItemAdd.value?.let {
+            return it.quantity <= it.quantityWarehouse
+        }
+
+        return false
+    }
+
+    fun clearAddedUsedParts() {
+        addedUsedParts.clear()
+    }
+
+    fun clearSparePartsList() {
+        _sparePartsList.value = emptyList()
     }
 }

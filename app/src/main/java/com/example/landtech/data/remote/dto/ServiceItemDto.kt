@@ -11,7 +11,12 @@ data class ServiceItemDto(
     val measureUnit: String,
     val quantity: Double,
     val engineer: String,
-    val explotationObject: String
+    val explotationObject: String,
+    var ended: Boolean = false,
+    var dateStart: String = "",
+    var dateEnd: String = "",
+    var byCurrentUser: Boolean = false,
+    val engineerName: String = "",
 ) {
     fun toDatabaseModel(orderId: String) = ServiceItemDb(
         id = id,
@@ -22,6 +27,10 @@ data class ServiceItemDto(
         quantity = quantity,
         engineer = engineer,
         autoGN = explotationObject,
-        orderId = orderId
+        orderId = orderId,
+        ended = ended,
+        dateStart = dateStart,
+        dateEnd = dateEnd,
+        byCurrentUser = byCurrentUser
     )
 }

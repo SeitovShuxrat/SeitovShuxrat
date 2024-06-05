@@ -27,7 +27,11 @@ data class ServiceItemAggregate(
         quantity = item.quantity,
         engineer = engineer?.toDomainModel() ?: Engineer(),
         autoGN = item.autoGN,
-        isLaborCost = item.isLaborCost
+        isLaborCost = item.isLaborCost,
+        ended = item.ended,
+        dateEnd = item.dateEnd,
+        dateStart = item.dateStart,
+        byCurrentUser = item.byCurrentUser
     )
 
     fun toDtoModel() =
@@ -40,7 +44,11 @@ data class ServiceItemAggregate(
                 measureUnit = measureUnit,
                 quantity = quantity,
                 engineer = engineer,
-                explotationObject = autoGN
+                explotationObject = autoGN,
+                ended = ended,
+                dateEnd = dateEnd,
+                dateStart = dateStart,
+                byCurrentUser = byCurrentUser
             )
         }
 }

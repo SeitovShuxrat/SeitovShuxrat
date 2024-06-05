@@ -1,7 +1,9 @@
 package com.example.landtech.data.repository
 
 import android.content.Context
-import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import androidx.lifecycle.LiveData
 import androidx.work.WorkManager
 import com.example.landtech.data.common.Constants
 import com.example.landtech.data.database.LandtechDao
@@ -9,19 +11,21 @@ import com.example.landtech.data.database.LandtechDatabase
 import com.example.landtech.data.database.models.EngineerDb
 import com.example.landtech.data.database.models.ExploitationObjectAggregate
 import com.example.landtech.data.database.models.ExploitationObjectDb
+import com.example.landtech.data.database.models.ImagesDb
 import com.example.landtech.data.database.models.NewSparePartDb
 import com.example.landtech.data.database.models.OrderAggregate
 import com.example.landtech.data.database.models.OrderDb
 import com.example.landtech.data.datastore.LandtechDataStore
 import com.example.landtech.data.remote.LandtechServiceAPI
 import com.example.landtech.data.remote.dto.NewSparePartDto
+import com.example.landtech.data.remote.dto.OrderImages
 import com.example.landtech.data.remote.dto.SparePartDto
 import com.example.landtech.data.work.FetchOrdersWorker
 import com.example.landtech.data.work.UploadOrderWithFilesToServerWorker
 import com.example.landtech.domain.models.Order
 import com.example.landtech.domain.models.OrderStatus
 import com.example.landtech.domain.models.TransferOrder
-import com.example.landtech.domain.utils.getFileName
+import com.example.landtech.domain.utils.getFile
 import com.example.landtech.domain.utils.showOrderCreatedNotification
 import com.example.landtech.domain.utils.toDate
 import kotlinx.coroutines.flow.Flow
@@ -29,10 +33,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.net.URI
 import java.util.Date
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -48,6 +48,9 @@ class LandtechRepositoryImpl(
 
     override val userLoggedIn: Flow<Boolean?>
         get() = dataStore.isLoggedIn
+
+    override val locationOrderId: Flow<String?>
+        get() = dataStore.locationOrderId
 
     override fun getAllOrders(status: OrderStatus?): Flow<List<OrderAggregate>> {
         return if (status == null)
@@ -145,7 +148,7 @@ class LandtechRepositoryImpl(
 
     override suspend fun fetchOrdersRemote(): Boolean {
         try {
-            val ordersResponse = api.getOrders()
+             val ordersResponse = api.getOrders()
 
             if (ordersResponse.code() == 401) {
                 userLogout()
@@ -154,11 +157,18 @@ class LandtechRepositoryImpl(
 
             val ordersRemote = ordersResponse.body()
 
-            val dbIsEmpty = dao.isEmpty()
+             val dbIsEmpty = dao.isEmpty()
 
             ordersRemote?.forEach {
                 val orderDb = dao.getOrder(it.guid)
-                if (orderDb?.order?.isModified == true) return@forEach
+                if (orderDb?.order?.isModified == true) {
+                    val receivedItems = it.receivedParts.map { receivedPartsItemDto ->
+                        receivedPartsItemDto?.toDatabaseModel(it.guid)
+                    }
+                    dao.deleteReceivedPartItems(orderDb.order.orderId)
+                    dao.insertReceivedPartsItems(*receivedItems.toTypedArray())
+                    return@forEach
+                }
 
                 val engineerId = if (it.engineerId != Constants.EMPTY_GUID) {
                     dao.insertEngineer(EngineerDb(it.engineerId, it.engineerName))
@@ -176,7 +186,6 @@ class LandtechRepositoryImpl(
                         engineerId = engineerId,
                         workType = it.workType,
                         machine = it.machinery,
-                        startDate = orderDb.order.startDate,
                         locationLat = orderDb.order.locationLat,
                         locationLng = orderDb.order.locationLng,
                         locationStartLat = orderDb.order.locationStartLat,
@@ -187,6 +196,7 @@ class LandtechRepositoryImpl(
                         driveEndDate = orderDb.order.driveEndDate,
                         driveStartDate = orderDb.order.driveStartDate,
                         driveTime = orderDb.order.driveTime,
+                        driveTimeEnd = orderDb.order.driveTimeEnd,
                         typeOrder = it.workType,
                         status = it.status,
                         workStartDate = orderDb.order.workStartDate,
@@ -200,17 +210,22 @@ class LandtechRepositoryImpl(
                         quickReport = it.quickReport,
                         clientRejectedToSign = it.clientRejectedToSign,
                         partsAreReceived = it.partsAreReceived,
-                        isMainUser = it.isMainUser
+                        isMainUser = it.isMainUser,
+                        isInEngineersList = it.isInEngineersList,
+                        startDate = it.workStartDate.toDate(),
                     )
                 } else {
                     OrderDb(
                         orderId = it.guid,
                         number = it.number,
                         date = it.date.toDate() ?: Date(),
+                        startDate = it.workStartDate.toDate(),
                         client = it.partner,
                         engineerId = engineerId,
                         workType = it.workType,
                         machine = it.machinery,
+                        driveTime = it.driveTime,
+                        driveTimeEnd = it.driveTimeEnd,
                         sn = it.sn,
                         ln = it.ln,
                         en = it.en,
@@ -221,11 +236,17 @@ class LandtechRepositoryImpl(
                         quickReport = it.quickReport,
                         clientRejectedToSign = it.clientRejectedToSign,
                         partsAreReceived = it.partsAreReceived,
-                        isMainUser = it.isMainUser
+                        isMainUser = it.isMainUser,
+                        isInEngineersList = it.isInEngineersList
                     )
                 }
 
                 val servicesItems = it.services.map { serviceItemDto ->
+                    serviceItemDto?.let { servItem ->
+                        if (servItem.engineer != Constants.EMPTY_GUID)
+                            dao.insertEngineer(EngineerDb(servItem.engineer, servItem.engineerName))
+                    }
+
                     serviceItemDto?.toDatabaseModel(it.guid)
                 }
 
@@ -287,9 +308,7 @@ class LandtechRepositoryImpl(
         val orderDb = dao.getOrder(it.id)
 
         try {
-            orderDb?.let {
-                sendOrderWithFilesToServer(orderDb)
-            }
+            orderDb?.let { sendOrderWithFilesToServer(it) }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -299,6 +318,7 @@ class LandtechRepositoryImpl(
         val orderList = dao.getModifiedOrders()
 
         orderList.forEach {
+
             try {
                 val result = sendOrderWithFilesToServer(it)
                 if (!result) return false
@@ -331,49 +351,13 @@ class LandtechRepositoryImpl(
             dao.deleteNewSpareParts(order.order.orderId)
 
         val filesAreUploaded = sendOrderFiles(order)
-        if (result.first && filesAreUploaded)
+        if (result.first && filesAreUploaded && order.order.status == OrderStatus.ENDED.value)
             dao.insertOrder(order.order.copy(isModified = false))
         return true
     }
 
     override suspend fun sendOrderFiles(order: OrderAggregate): Boolean {
-
-        val image = if (order.order.imageUri != null) {
-            order.order.imageUri?.let {
-                val uri = Uri.parse(it)
-                val file =
-                    try {
-                        if (uri.scheme == "content") {
-                            val fd =
-                                context.contentResolver.openFileDescriptor(uri, "r", null)
-                                    ?: return false
-                            val file =
-                                File(context.cacheDir, context.contentResolver.getFileName(uri))
-                            val inputStream = FileInputStream(fd.fileDescriptor)
-                            val outputStream = FileOutputStream(file)
-                            inputStream.copyTo(outputStream)
-                            fd.close()
-                            file
-                        } else {
-                            File(URI(it))
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
-
-
-                file?.let { imgFile ->
-                    MultipartBody.Part.createFormData(
-                        "image",
-                        imgFile.name,
-                        imgFile.asRequestBody("image/*".toMediaTypeOrNull())
-                    )
-                }
-            }
-        } else {
-            null
-        }
+        sendImages(order)
 
         val signImage = if (!order.order.clientRejectedToSign) {
             val signFileArray = context.filesDir.listFiles { _, name ->
@@ -393,17 +377,39 @@ class LandtechRepositoryImpl(
             null
         }
 
-        if (image == null && signImage == null)
+        val directoryRecording = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            context.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)
+        } else {
+            context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+        }
+
+        val recordingsArray = directoryRecording?.listFiles { _, name ->
+            name == "land_${order.order.orderId}.mp3"
+        }
+        val recordingFile = if ((recordingsArray?.size ?: 0) > 0) recordingsArray?.get(0) else null
+
+        val recording = recordingFile?.let { recording ->
+            MultipartBody.Part.createFormData(
+                "recording",
+                recording.name,
+                recording.asRequestBody("audio/mpeg".toMediaTypeOrNull())
+            )
+        }
+
+        if (signImage == null && recording == null)
             return true
 
         val id = RequestBody.create(MultipartBody.FORM, order.order.orderId)
-        val result = api.uploadOrderFiles(id, image, signImage)
+        val result = api.uploadOrderFiles(id, null, signImage, recording)
         return result.isSuccessful
     }
 
-    override suspend fun getAllSpareParts(showOnlyRemainders: Boolean): List<SparePartDto> {
+    override suspend fun getAllSpareParts(
+        showOnlyRemainders: Boolean,
+        orderId: String?
+    ): List<SparePartDto> {
         try {
-            return api.getSpareParts(showOnlyRemainders)
+            return api.getSpareParts(showOnlyRemainders, orderId)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -454,5 +460,44 @@ class LandtechRepositoryImpl(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun getImages(orderId: String): LiveData<List<ImagesDb>?> {
+        return dao.getImages(orderId)
+    }
+
+    override suspend fun addImage(image: ImagesDb) {
+        dao.insertImage(image)
+    }
+
+    override suspend fun removeImage(image: ImagesDb) {
+        dao.removeImage(image)
+    }
+
+    override suspend fun sendImages(order: OrderAggregate) {
+        val images = dao.getImagesSus(order.order.orderId)
+        val imageNamesList =  mutableListOf<String>()
+
+        images?.forEach {
+            val image = it.imageUri.let { uri ->
+                val file = getFile(uri, context, it.toString())
+                file?.let { imgFile ->
+                    imageNamesList.add(imgFile.name)
+
+                    MultipartBody.Part.createFormData(
+                        "image",
+                        imgFile.name,
+                        imgFile.asRequestBody("image/*".toMediaTypeOrNull())
+                    )
+                }
+
+            }
+            if (image != null) {
+                val id = RequestBody.create(MultipartBody.FORM, order.order.orderId)
+                api.uploadOrderFiles(id, image, null, null)
+            }
+        }
+
+        api.sendOrderImagesList(OrderImages(order.order.orderId, imageNamesList))
     }
 }

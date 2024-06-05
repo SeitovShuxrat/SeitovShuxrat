@@ -14,6 +14,11 @@
         <action
             android:id="@+id/action_ordersFragment_to_selectSparePartFragment"
             app:destination="@id/selectSparePartFragment" />
+        <action
+            android:id="@+id/action_ordersFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/orderDetailsFragment"
@@ -44,6 +49,12 @@
         <action
             android:id="@+id/action_orderDetailsFragment_to_transferOrdersListFragment"
             app:destination="@id/transferOrdersListFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_audioRecordFragment"
+            app:destination="@id/audioRecordFragment" />
+        <action
+            android:id="@+id/action_orderDetailsFragment_to_imagesFragment"
+            app:destination="@id/imagesFragment" />
     </fragment>
     <fragment
         android:id="@+id/engineersSelectFragment"
@@ -66,7 +77,11 @@
     <fragment
         android:id="@+id/exploitationObjectSelectFragment"
         android:name="com.example.landtech.presentation.ui.select_exploitation_object.ExploitationObjectSelectFragment"
-        android:label="Выберите объект эксплуатации" />
+        android:label="Выберите объект эксплуатации" >
+        <argument
+            android:name="singularSelect"
+            app:argType="boolean" />
+    </fragment>
     <fragment
         android:id="@+id/usedPartAddFragment"
         android:name="com.example.landtech.presentation.ui.used_parts_add.UsedPartAddFragment"
@@ -82,6 +97,10 @@
         <argument
             android:name="showOnlyRemainders"
             app:argType="boolean" />
+        <argument
+            android:name="orderId"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/addSparePartsListFragment"
@@ -110,4 +129,20 @@
         android:id="@+id/transferOrdersListFragment"
         android:name="com.example.landtech.presentation.ui.transfer_order_list.TransferOrdersListFragment"
         android:label="TransferOrdersListFragment" />
+    <fragment
+        android:id="@+id/audioRecordFragment"
+        android:name="com.example.landtech.presentation.ui.audio_record.AudioRecordFragment"
+        android:label="AudioRecordFragment" >
+        <argument
+            android:name="orderId"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/imagesFragment"
+        android:name="com.example.landtech.presentation.ui.images.ImagesFragment"
+        android:label="ImagesFragment" >
+        <argument
+            android:name="orderId"
+            app:argType="string" />
+    </fragment>
 </navigation>

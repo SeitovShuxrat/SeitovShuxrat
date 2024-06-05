@@ -15,7 +15,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.landtech.databinding.FragmentAddUsedPartBinding
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
 
-
 class UsedPartAddFragment : Fragment() {
 
     private val viewModel: OrderDetailsViewModel by activityViewModels()
@@ -103,7 +102,12 @@ class UsedPartAddFragment : Fragment() {
             }
 
             selectGoodsBtn.setOnClickListener {
-                findNavController().navigate(UsedPartAddFragmentDirections.actionUsedPartAddFragmentToSelectSparePartFragment(true))
+                findNavController().navigate(
+                    UsedPartAddFragmentDirections.actionUsedPartAddFragmentToSelectSparePartFragment(
+                        true,
+                        viewModel.order.value?.id
+                    )
+                )
             }
 
             cancelBtn.setOnClickListener {
@@ -115,6 +119,11 @@ class UsedPartAddFragment : Fragment() {
 
                 viewModel.apply {
                     if (usedPartAddFieldsAreSet()) {
+                        if (!usedPartQuantityCheck()) {
+                            Toast.makeText(requireContext(), "Количество не может быть больше остатка!", Toast.LENGTH_LONG)
+                                .show()
+                            return@setOnClickListener
+                        }
                         addUsedPartItem()
                         clearUsedPartAdd()
                     } else {

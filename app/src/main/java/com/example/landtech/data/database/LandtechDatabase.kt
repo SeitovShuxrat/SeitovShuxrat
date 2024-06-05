@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.example.landtech.data.database.models.EngineerDb
 import com.example.landtech.data.database.models.EngineersOrderItemDb
 import com.example.landtech.data.database.models.ExploitationObjectDb
+import com.example.landtech.data.database.models.ImagesDb
 import com.example.landtech.data.database.models.NewSparePartDb
 import com.example.landtech.data.database.models.OrderDb
 import com.example.landtech.data.database.models.ReceivedPartsItemDb
@@ -18,8 +19,8 @@ import com.example.landtech.data.database.models.UsedPartsItemDb
     entities = [EngineerDb::class, OrderDb::class, ReceivedPartsItemDb::class,
         ReturnedPartsItemDb::class, ServiceItemDb::class, UsedPartsItemDb::class,
         EngineersOrderItemDb::class, ExploitationObjectDb::class, NewSparePartDb::class,
-        TransferOrderDb::class],
-    version = 23
+        TransferOrderDb::class, ImagesDb::class],
+    version = 31
 )
 @TypeConverters(Converters::class)
 abstract class LandtechDatabase : RoomDatabase() {

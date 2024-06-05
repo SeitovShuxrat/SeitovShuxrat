@@ -8,6 +8,8 @@ data class OrderDto(
     val partner: String,
     val workType: String,
     val machinery: String,
+    val driveTime: Double = 0.0,
+    val driveTimeEnd: Double = 0.0,
     val sn: String,
     val ln: String,
     val en: String,
@@ -33,9 +35,12 @@ data class OrderDto(
     val returnedParts: List<ReturnedPartsItemDto?> = listOf(),
     val newSpareParts: List<NewSparePartDto?> = listOf(),
     val engineerItems: List<EngineerItemDto?> = listOf(),
+    var images: List<String> = listOf(),
     var needToCreateGuaranteeOrder: Boolean = false,
     var workHasNoGuarantee: Boolean = false,
     var clientRejectedToSign: Boolean = false,
     var partsAreReceived: Boolean = false,
     var isMainUser: Boolean = false,
-)
+    var isInEngineersList: Boolean = false,
+
+    )

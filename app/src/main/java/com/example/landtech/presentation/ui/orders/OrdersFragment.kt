@@ -17,6 +17,8 @@ import com.example.landtech.R
 import com.example.landtech.databinding.FragmentOrdersBinding
 import com.example.landtech.domain.models.OrderStatus
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.DelicateCoroutinesApi
+
 
 @AndroidEntryPoint
 class OrdersFragment : Fragment() {
@@ -52,7 +54,12 @@ class OrdersFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.menu_good_remainders -> {
-                        findNavController().navigate(OrdersFragmentDirections.actionOrdersFragmentToSelectSparePartFragment(true))
+                        findNavController().navigate(
+                            OrdersFragmentDirections.actionOrdersFragmentToSelectSparePartFragment(
+                                true,
+                                null
+                            )
+                        )
                         true
                     }
 
@@ -82,8 +89,9 @@ class OrdersFragment : Fragment() {
                     }
 
                     R.id.menu_logout -> {
-                        viewModel.logout()
-                        findNavController().navigateUp()
+                        viewModel.logout {
+                            findNavController().navigate(OrdersFragmentDirections.actionOrdersFragmentToLoginFragment())
+                        }
                         true
                     }
 

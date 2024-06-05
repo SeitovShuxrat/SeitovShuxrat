@@ -6,6 +6,7 @@ import androidx.room.Relation
 import com.example.landtech.data.remote.dto.OrderDto
 import com.example.landtech.domain.models.Engineer
 import com.example.landtech.domain.models.Order
+import com.example.landtech.domain.models.ReceivedPartsItem
 import com.example.landtech.domain.utils.makeString
 
 data class OrderAggregate(
@@ -45,9 +46,10 @@ data class OrderAggregate(
 
     @Relation(
         parentColumn = "orderId",
-        entityColumn = "orderId"
+        entityColumn = "orderId",
+        entity = EngineersOrderItemDb::class
     )
-    val engineersItems: List<EngineersOrderItemDb>,
+    val engineersItems: List<EngineersOrderItemAggregate>,
 
     @Relation(
         parentColumn = "orderId",
@@ -74,6 +76,7 @@ data class OrderAggregate(
             ln = order.ln,
             en = order.en,
             driveTime = order.driveTime,
+            driveTimeEnd = order.driveTimeEnd,
             driveStartDate = order.driveStartDate?.makeString() ?: "",
             driveEndDate = order.driveEndDate?.makeString() ?: "",
             typeOrder = order.typeOrder,
@@ -98,7 +101,8 @@ data class OrderAggregate(
             clientRejectedToSign = order.clientRejectedToSign,
             partsAreReceived = order.partsAreReceived,
             isMainUser = order.isMainUser,
-            workStarted = order.workStarted
+            workStarted = order.workStarted,
+            isInEngineersList = order.isInEngineersList
         )
     }
 
@@ -115,6 +119,8 @@ data class OrderAggregate(
                 sn = sn,
                 ln = ln,
                 en = en,
+                driveTime = driveTime,
+                driveTimeEnd = driveTimeEnd,
                 driveStartDate = driveStartDate?.makeString() ?: "",
                 driveEndDate = driveEndDate?.makeString() ?: "",
                 workStartDate = workStartDate?.makeString() ?: "",
@@ -138,9 +144,10 @@ data class OrderAggregate(
                 receivedParts = receivedPartsItems.map { it.toDtoModel() },
                 returnedParts = returnedPartsItems.map { it.toDtoModel() },
                 newSpareParts = newSpareParts.map { it.toDtoModel() },
-                engineerItems = engineersItems.map {it.toDtoModel()},
+                engineerItems = engineersItems.map { it.toDtoModel() },
                 clientRejectedToSign = clientRejectedToSign,
-                partsAreReceived = order.partsAreReceived
+                partsAreReceived = order.partsAreReceived,
+                isInEngineersList = order.isInEngineersList
             )
         }
 }

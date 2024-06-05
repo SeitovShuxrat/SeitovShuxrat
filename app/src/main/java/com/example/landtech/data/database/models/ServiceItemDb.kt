@@ -32,5 +32,9 @@ data class ServiceItemDb(
     var autoGN: String = "",
     var rowNum: Int = 1,
     var orderId: String,
-    var isLaborCost: Boolean = false
+    var isLaborCost: Boolean = false,
+    var ended: Boolean = false,
+    var dateStart: String = "",
+    var dateEnd: String = "",
+    var byCurrentUser: Boolean = false
 )

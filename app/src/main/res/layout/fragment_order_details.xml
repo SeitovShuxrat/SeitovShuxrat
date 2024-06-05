@@ -20,6 +20,20 @@
             android:layout_height="wrap_content"
             android:visibility="visible">
 
+            <TextView
+                android:id="@+id/voiceDefinitionBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:drawablePadding="8dp"
+                android:text="Описание голосом"
+                android:textColor="@color/pink_text"
+                android:textSize="20sp"
+                app:drawableStartCompat="@drawable/baseline_fiber_manual_record_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/addImageBtn" />
+
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyle"
@@ -185,7 +199,7 @@
             <Button
                 android:id="@+id/startTripBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
                 android:text="Начало поездки"
@@ -195,7 +209,7 @@
             <Button
                 android:id="@+id/arrivalBtn"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:text="Прибытие"
                 app:layout_constraintEnd_toEndOf="@+id/startTripBtn"
                 app:layout_constraintStart_toStartOf="@+id/startTripBtn"
@@ -204,7 +218,7 @@
             <Button
                 android:id="@+id/startWorkBtn"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:text="Начало Работы"
                 app:layout_constraintBottom_toBottomOf="@+id/startTripBtn"
                 app:layout_constraintEnd_toEndOf="@+id/endWorkBtn"
@@ -214,9 +228,9 @@
             <Button
                 android:id="@+id/endAllWorks"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginStart="16dp"
-                android:text="Окончание работ"
+                android:text="Завершение работ"
                 app:layout_constraintBottom_toBottomOf="@+id/startWorkBtn"
                 app:layout_constraintStart_toEndOf="@+id/startWorkBtn"
                 app:layout_constraintTop_toTopOf="@+id/startWorkBtn" />
@@ -224,7 +238,7 @@
             <Button
                 android:id="@+id/signWorks"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginStart="16dp"
                 android:text="Добавить подпись"
                 app:layout_constraintBottom_toBottomOf="@+id/endAllWorks"
@@ -235,7 +249,7 @@
             <Button
                 android:id="@+id/endWorkBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginStart="16dp"
                 android:elegantTextHeight="false"
                 android:text="Окончание Работы"
@@ -250,28 +264,26 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Добавить номер авто"
-                app:layout_constraintBottom_toBottomOf="@+id/endWorkBtn"
-                app:layout_constraintEnd_toEndOf="@+id/addImageBtn"
-                app:layout_constraintStart_toStartOf="@+id/addImageBtn"
-                app:layout_constraintTop_toBottomOf="@+id/addImageBtn" />
+                app:layout_constraintEnd_toEndOf="@+id/voiceDefinitionBtn"
+                app:layout_constraintStart_toStartOf="@+id/voiceDefinitionBtn"
+                app:layout_constraintTop_toBottomOf="@+id/voiceDefinitionBtn" />
 
             <TextView
                 android:id="@+id/addImageBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="8dp"
                 android:drawablePadding="8dp"
                 android:text="Добавить фото"
                 android:textSize="20sp"
                 app:drawableStartCompat="@drawable/attach_file_icon"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintEnd_toEndOf="@+id/voiceDefinitionBtn"
+                app:layout_constraintStart_toStartOf="@+id/voiceDefinitionBtn"
+                app:layout_constraintTop_toTopOf="@+id/signWorks" />
 
             <Button
                 android:id="@+id/endTripBtn"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:text="Окончание \n поездки"
                 app:layout_constraintBottom_toBottomOf="@+id/endWorkBtn"
                 app:layout_constraintEnd_toEndOf="@+id/endAllWorks"
