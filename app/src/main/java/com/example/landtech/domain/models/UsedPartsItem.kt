@@ -13,8 +13,8 @@ data class UsedPartsItem(
     var name: String = "",
     var number: String = "",
     var quantity: Double = 0.00,
-
-    ) : Parcelable {
+    var quantityWarehouse: Double = 0.00,
+) : Parcelable {
     fun toDatabaseModel(orderId: String) =
         UsedPartsItemDb(
             id = id,

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/fileNameText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:text="Нажмите на кнопки ниже \n для записи или воспроизведения аудио файла"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Chronometer
+            android:id="@+id/recordTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:textSize="36sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fileNameText" />
+
+        <ImageView
+            android:id="@+id/recordBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:clickable="true"
+            android:src="@drawable/record_btn_stopped"
+            app:layout_constraintBottom_toBottomOf="@+id/playBtn"
+            app:layout_constraintEnd_toStartOf="@+id/playBtn"
+            app:layout_constraintTop_toTopOf="@+id/playBtn" />
+
+        <ImageView
+            android:id="@+id/playBtn"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:clickable="true"
+            android:src="@drawable/list_play_btn"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recordTimer" />
+
+        <ImageView
+            android:id="@+id/deleteBtn"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_marginStart="16dp"
+            android:clickable="true"
+            android:src="@drawable/delete_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/playBtn"
+            app:layout_constraintStart_toEndOf="@+id/playBtn"
+            app:layout_constraintTop_toTopOf="@+id/playBtn" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

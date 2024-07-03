@@ -20,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -74,9 +75,12 @@ class OrdersViewModel @Inject constructor(
         ordersFilterValue.value = status
     }
 
-    fun logout() {
+    fun logout(doAfter: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.userLogout()
+            withContext(Dispatchers.Main) {
+                doAfter()
+            }
         }
     }
 }

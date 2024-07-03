@@ -1,6 +1,8 @@
 package com.example.landtech.data.database
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -9,6 +11,7 @@ import com.example.landtech.data.database.models.EngineerDb
 import com.example.landtech.data.database.models.EngineersOrderItemDb
 import com.example.landtech.data.database.models.ExploitationObjectAggregate
 import com.example.landtech.data.database.models.ExploitationObjectDb
+import com.example.landtech.data.database.models.ImagesDb
 import com.example.landtech.data.database.models.NewSparePartDb
 import com.example.landtech.data.database.models.OrderAggregate
 import com.example.landtech.data.database.models.OrderDb
@@ -130,4 +133,15 @@ interface LandtechDao {
     @Query("SELECT * FROM transfer_order WHERE needToCreate = 0 AND isCreated = 0 AND orderId = :orderId")
     fun getTransferOrderListForCreation(orderId: String): List<TransferOrderDb>
 
+    @Query("SELECT * FROM images WHERE orderId = :orderId")
+    fun getImages(orderId: String): LiveData<List<ImagesDb>?>
+
+    @Query("SELECT * FROM images WHERE orderId = :orderId")
+    fun getImagesSus(orderId: String): List<ImagesDb>?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertImage(image: ImagesDb)
+
+    @Delete
+    fun removeImage(image: ImagesDb)
 }

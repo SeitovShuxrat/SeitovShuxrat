@@ -1,6 +1,7 @@
 package com.example.landtech.domain.utils
 
 import android.Manifest
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Context
@@ -15,12 +16,18 @@ import android.provider.OpenableColumns
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.net.toFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.example.landtech.LandtechApp
 import com.example.landtech.R
 import com.example.landtech.data.common.Constants
 import com.example.landtech.presentation.MainActivity
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -112,4 +119,44 @@ class PairLiveData<A, B>(first: LiveData<A>, second: LiveData<B>) : MediatorLive
 
 fun <A, B> LiveData<A>.combine(other: LiveData<B>): PairLiveData<A, B> {
     return PairLiveData(this, other)
+}
+
+fun Context.hasLocationPermission(): Boolean {
+    return ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+}
+
+fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+    val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val services = manager.getRunningServices(Integer.MAX_VALUE)
+    for (service in services) {
+        if (serviceClass.name == service.service.className) {
+            return true
+        }
+    }
+    return false
+}
+
+fun getFile(uri: Uri, context: Context, uriString: String): File? {
+    return try {
+        if (uri.scheme == "content") {
+            val fd =
+                context.contentResolver.openFileDescriptor(uri, "r", null)
+                    ?: return null
+            val file =
+                File(context.cacheDir, context.contentResolver.getFileName(uri))
+            val inputStream = FileInputStream(fd.fileDescriptor)
+            val outputStream = FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            fd.close()
+            file
+        } else {
+            uri.toFile()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }

@@ -4,7 +4,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -63,7 +62,15 @@ class ReceivedPartsListAdapter(private val onReceivedChanged: () -> Unit) :
 
                 override fun afterTextChanged(s: Editable?) {
                     try {
-                        item.received = if (s?.isEmpty() == false) s.toString().toDouble() else 0.0
+                        val quantity = if (s?.isEmpty() == false) s.toString().toDouble() else 0.0
+
+                        if(quantity > item.inTransit + item.received) {
+                            binding.receivedTV.error =
+                                "Нельзя устанавливать количество больше чем передано!"
+                            return
+                        }
+
+                        item.received = quantity
                         onReceivedChanged()
                     } catch (_: Exception) {
                     }

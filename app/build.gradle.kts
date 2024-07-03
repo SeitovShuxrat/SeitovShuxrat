@@ -128,6 +128,12 @@ dependencies {
 
     implementation("com.chauthai.swipereveallayout:swipe-reveal-layout:1.4.1")
 
+    //Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
 }
 
 // Allow references to generated code

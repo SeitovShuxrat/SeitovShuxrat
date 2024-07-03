@@ -10,7 +10,6 @@ import com.example.landtech.domain.utils.makeString
 import java.util.Date
 import java.util.UUID
 
-
 @Entity(
     tableName = "returned_parts_items",
     primaryKeys = ["id", "orderId"],

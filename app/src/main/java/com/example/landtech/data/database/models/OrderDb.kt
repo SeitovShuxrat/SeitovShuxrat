@@ -34,6 +34,7 @@ data class OrderDb(
     var ln: String = "",
     var en: String = "",
     var driveTime: Double = 0.0,
+    var driveTimeEnd: Double = 0.0,
     var driveStartDate: Date? = null,
     var driveEndDate: Date? = null,
     var typeOrder: String = "",
@@ -53,7 +54,8 @@ data class OrderDb(
     var clientRejectedToSign: Boolean = false,
     var partsAreReceived: Boolean = false,
     var isMainUser: Boolean = true,
-    var workStarted: Boolean = false
+    var workStarted: Boolean = false,
+    var isInEngineersList: Boolean = false,
 //    val services: MutableList<ServiceItem> = mutableListOf(),
 //    val usedParts: MutableList<UsedPartsItem> = mutableListOf(),
 //    val receivedParts: MutableList<ReceivedPartsItem> = mutableListOf(),

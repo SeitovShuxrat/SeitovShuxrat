@@ -148,7 +148,7 @@ class LandtechRepositoryImpl(
 
     override suspend fun fetchOrdersRemote(): Boolean {
         try {
-             val ordersResponse = api.getOrders()
+            val ordersResponse = api.getOrders()
 
             if (ordersResponse.code() == 401) {
                 userLogout()
@@ -157,10 +157,20 @@ class LandtechRepositoryImpl(
 
             val ordersRemote = ordersResponse.body()
 
-             val dbIsEmpty = dao.isEmpty()
+            val dbIsEmpty = dao.isEmpty()
 
             ordersRemote?.forEach {
                 val orderDb = dao.getOrder(it.guid)
+                if (orderDb?.order?.status == OrderStatus.ENDED.value || orderDb?.order?.status == OrderStatus.CLOSED.value) {
+                    val orderDbNew = orderDb.order.copy(
+                        status = it.status,
+                        startDate = it.workStartDate.toDate()
+                    )
+
+                    dao.insertOrder(orderDbNew)
+                    return@forEach
+                }
+
                 if (orderDb?.order?.isModified == true) {
                     val receivedItems = it.receivedParts.map { receivedPartsItemDto ->
                         receivedPartsItemDto?.toDatabaseModel(it.guid)
@@ -476,7 +486,7 @@ class LandtechRepositoryImpl(
 
     override suspend fun sendImages(order: OrderAggregate) {
         val images = dao.getImagesSus(order.order.orderId)
-        val imageNamesList =  mutableListOf<String>()
+        val imageNamesList = mutableListOf<String>()
 
         images?.forEach {
             val image = it.imageUri.let { uri ->

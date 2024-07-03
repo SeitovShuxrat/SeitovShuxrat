@@ -1,26 +1,20 @@
 package com.example.landtech.presentation.ui.order_details.tab_fragments.work
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
-import android.speech.RecognizerIntent
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.landtech.databinding.FragmentWorkBinding
+import com.example.landtech.presentation.ui.engineers_select.EngineersSelectListAdapter
 import com.example.landtech.presentation.ui.order_details.OrderDetailsFragmentDirections
 import com.example.landtech.presentation.ui.order_details.OrderDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Objects
 
 @AndroidEntryPoint
 class WorkFragment : Fragment() {
@@ -28,25 +22,25 @@ class WorkFragment : Fragment() {
     private val viewModel: OrderDetailsViewModel by activityViewModels()
 
 
-    private val startSpeechToText =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-
-            val resultCode = result.resultCode
-            val data = result.data
-
-            when (resultCode) {
-                Activity.RESULT_OK -> {
-                    val textArr = data?.getStringArrayListExtra(
-                        RecognizerIntent.EXTRA_RESULTS
-                    )
-                    binding.quickReport.setText(Objects.requireNonNull(textArr)?.get(0))
-                }
-
-                else -> {
-                    Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+//    private val startSpeechToText =
+//        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+//
+//            val resultCode = result.resultCode
+//            val data = result.data
+//
+//            when (resultCode) {
+//                Activity.RESULT_OK -> {
+//                    val textArr = data?.getStringArrayListExtra(
+//                        RecognizerIntent.EXTRA_RESULTS
+//                    )
+//                    binding.quickReport.setText(Objects.requireNonNull(textArr)?.get(0))
+//                }
+//
+//                else -> {
+//                    Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -61,13 +55,29 @@ class WorkFragment : Fragment() {
         binding.apply {
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@WorkFragment.viewModel
-            servicesRecyclerView.adapter = ServicesListAdapter {
-                this@WorkFragment.viewModel.setModified(true)
+            servicesRecyclerView.adapter =
+                ServicesListAdapter(
+                    this@WorkFragment.viewModel.worksHaveEnded.value ?: false,
+                    onQuantityChanged = {
+                        this@WorkFragment.viewModel.setModified(true)
+                    },
+                    onAutoGnClicked = { serviceItem ->
+                        this@WorkFragment.viewModel.setCurrentServiceItem(serviceItem)
+                        findNavController().navigate(
+                            OrderDetailsFragmentDirections.actionOrderDetailsFragmentToExploitationObjectSelectFragment(
+                                true
+                            )
+                        )
+                    })
+            usedSparePartsRecyclerView.adapter = UsedPartsListAdapter {
+                this@WorkFragment.viewModel.deleteUsedSparePart(it)
             }
-            usedSparePartsRecyclerView.adapter = UsedPartsListAdapter()
 
             this@WorkFragment.viewModel.isMainUser.observe(viewLifecycleOwner) {
                 setEnabled(it)
+            }
+            this@WorkFragment.viewModel.worksHaveEnded.observe(viewLifecycleOwner) {
+                if (it) setWorksEnded()
             }
 
             addEngineer.setOnClickListener {
@@ -79,21 +89,7 @@ class WorkFragment : Fragment() {
             }
 
             endWorkBtn.setOnClickListener {
-                setAutoDriveTime()
-            }
-
-            voiceDefinitionBtn.setOnClickListener {
-                val language = "ru-RU"
-
-                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                intent.putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL, language
-                )
-                intent.putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE, language
-                )
-
-                startSpeechToText.launch(intent)
+                setAutoDriveTime(true)
             }
 
             createGuaranteeOrder.setOnClickListener {
@@ -127,6 +123,11 @@ class WorkFragment : Fragment() {
                 )
             }
 
+            val adapter = EngineersSelectListAdapter(EngineersSelectListAdapter.OnClickListener {})
+            engineersRecyclerView.adapter = adapter
+            this@WorkFragment.viewModel.order.observe(viewLifecycleOwner) {
+                adapter.submitList(it?.engineersItems?.map { item -> item.engineer })
+            }
         }
     }
 
@@ -140,7 +141,6 @@ class WorkFragment : Fragment() {
                 clientIssueDefinition.isEnabled = isMainUser
                 workDefinition.isEnabled = isMainUser
                 quickReport.isEnabled = isMainUser
-                voiceDefinitionBtn.isEnabled = isMainUser
                 createGuaranteeOrder.isEnabled = isMainUser
                 workNotGuaranteed.isEnabled = isMainUser
                 addEngineer.isEnabled = isMainUser
@@ -150,7 +150,19 @@ class WorkFragment : Fragment() {
         }
     }
 
-    private fun setAutoDriveTime() {
+    private fun setWorksEnded() {
+        setEnabled(false)
+        binding.servicesRecyclerView.isEnabled = false
+
+        for (i in 0 until binding.servicesRecyclerView.childCount) {
+            val holder: ServicesListAdapter.VH =
+                binding.servicesRecyclerView.findViewHolderForAdapterPosition(i) as ServicesListAdapter.VH
+            holder.disableFields()
+        }
+    }
+
+
+    private fun setAutoDriveTime(isEnd: Boolean = false) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Укажите моточасы")
 
@@ -159,7 +171,7 @@ class WorkFragment : Fragment() {
         builder.setView(input)
 
         builder.setPositiveButton("ОК") { _, _ ->
-            viewModel.setAutoDriveTime(input.text.toString().toDoubleOrNull())
+            viewModel.setAutoDriveTime(input.text.toString().toDoubleOrNull(), isEnd)
         }
         builder.setNegativeButton(
             "Отменить"

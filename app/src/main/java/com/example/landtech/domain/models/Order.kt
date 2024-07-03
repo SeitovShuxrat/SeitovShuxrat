@@ -3,7 +3,6 @@ package com.example.landtech.domain.models
 import android.net.Uri
 import android.os.Parcelable
 import com.example.landtech.data.database.models.OrderDb
-import com.example.landtech.data.remote.dto.TransferOrderDto
 import com.example.landtech.domain.utils.toDate
 import kotlinx.parcelize.Parcelize
 import java.util.Date
@@ -27,6 +26,7 @@ data class Order(
     val ln: String = "",
     val en: String = "",
     var driveTime: Double = 0.0,
+    var driveTimeEnd: Double = 0.0,
     var driveStartDate: String = "",
     var driveEndDate: String = "",
     var typeOrder: String = "",
@@ -41,9 +41,10 @@ data class Order(
     var workDescription: String = "",
     var quickReport: String = "",
     val services: MutableList<ServiceItem> = mutableListOf(),
-    val usedParts: MutableList<UsedPartsItem> = mutableListOf(),
+    var usedParts: MutableList<UsedPartsItem> = mutableListOf(),
     val receivedParts: MutableList<ReceivedPartsItem> = mutableListOf(),
     val returnedParts: MutableList<ReturnedPartsItem> = mutableListOf(),
+    val receivedPartsRemainders: MutableList<ReceivedPartsItem> = mutableListOf(),
     val engineersItems: MutableList<EngineersOrderItem> = mutableListOf(),
     val newSpareParts: MutableList<NewSparePart> = mutableListOf(),
     var needToCreateGuaranteeOrder: Boolean = false,
@@ -52,8 +53,10 @@ data class Order(
     var clientRejectedToSign: Boolean = false,
     var partsAreReceived: Boolean = false,
     var isMainUser: Boolean = false,
-    var workStarted: Boolean = false
-) : Parcelable {
+    var workStarted: Boolean = false,
+    var isInEngineersList: Boolean = false,
+
+    ) : Parcelable {
 
     fun toDatabaseModel() = OrderDb(
         orderId = id,
@@ -72,6 +75,7 @@ data class Order(
         ln = ln,
         en = en,
         driveTime = driveTime,
+        driveTimeEnd = driveTimeEnd,
         driveStartDate = driveStartDate.toDate(),
         driveEndDate = driveEndDate.toDate(),
         typeOrder = typeOrder,
@@ -91,6 +95,7 @@ data class Order(
         clientRejectedToSign = clientRejectedToSign,
         partsAreReceived = partsAreReceived,
         isMainUser = isMainUser,
-        workStarted = workStarted
+        workStarted = workStarted,
+        isInEngineersList = isInEngineersList
     )
 }

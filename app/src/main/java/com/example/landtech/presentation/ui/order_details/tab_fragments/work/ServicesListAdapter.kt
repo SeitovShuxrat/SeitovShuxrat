@@ -10,7 +10,11 @@ import com.example.landtech.domain.models.ServiceItem
 import com.example.landtech.databinding.ServiceItemBinding
 import java.util.Locale
 
-class ServicesListAdapter(private val onQuantityChanged: () -> Unit) :
+class ServicesListAdapter(
+    private var worksHaveEnded: Boolean = false,
+    private val onQuantityChanged: () -> Unit,
+    private val onAutoGnClicked: (ServiceItem) -> Unit
+) :
     ListAdapter<ServiceItem, ServicesListAdapter.VH>(
         object : DiffUtil.ItemCallback<ServiceItem>() {
             override fun areItemsTheSame(oldItem: ServiceItem, newItem: ServiceItem) =
@@ -28,19 +32,35 @@ class ServicesListAdapter(private val onQuantityChanged: () -> Unit) :
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.bind(getItem(position), onQuantityChanged)
+        holder.bind(getItem(position), worksHaveEnded, onQuantityChanged, onAutoGnClicked)
     }
 
     class VH(private val binding: ServiceItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ServiceItem, onQuantityChanged: () -> Unit) {
-            binding.serviceItem = item
-            binding.quantityTV.setText(String.format(Locale.ENGLISH, "%.3f", item.quantity))
+        fun disableFields() {
+            binding.quantityTV.isEnabled = false
+            binding.autoGnTV.isEnabled = false
+        }
 
+        fun bind(
+            item: ServiceItem,
+            worksHaveEnded: Boolean,
+            onQuantityChanged: () -> Unit,
+            onAutoGnClicked: (ServiceItem) -> Unit
+        ) {
+            binding.serviceItem = item
+
+            if (worksHaveEnded) disableFields()
+
+            binding.quantityTV.setText(String.format(Locale.ENGLISH, "%.3f", item.quantity))
             binding.quantityTV.addTextChangedListener {
                 item.quantity = if (it?.isEmpty() == false) it.toString().toDouble() else 0.0
                 onQuantityChanged()
+            }
+
+            binding.autoGnTV.setOnClickListener {
+                onAutoGnClicked(item)
             }
         }
     }

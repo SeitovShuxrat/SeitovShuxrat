@@ -38,7 +38,9 @@ class SparePartsFragment : Fragment() {
             this@SparePartsFragment.viewModel.isMainUser.observe(viewLifecycleOwner) {
                 setEnabled(it)
             }
-
+            this@SparePartsFragment.viewModel.worksHaveEnded.observe(viewLifecycleOwner) {
+                if (it) setEnabled(false)
+            }
             val returnedPartsAdapter =
                 ReturnedPartsListAdapter(
                     onReturnedQuantityChanged = { item, quantity ->
@@ -48,6 +50,10 @@ class SparePartsFragment : Fragment() {
                         this@SparePartsFragment.viewModel.deleteReturnedSparePart(it)
                     })
             returnedPartsRecyclerView.adapter = returnedPartsAdapter
+
+            this@SparePartsFragment.viewModel.returnedParts.observe(viewLifecycleOwner) {
+                returnedPartsAdapter.submitList(it)
+            }
 
             addReturnPart.setOnClickListener {
                 findNavController().navigate(OrderDetailsFragmentDirections.actionOrderDetailsFragmentToSelectReceivedPartFragment())
@@ -63,9 +69,9 @@ class SparePartsFragment : Fragment() {
         isMainUser?.let {
             binding.apply {
                 receivedPartsRecyclerView.isEnabled = it
-                returnedPartsRecyclerView.isEnabled = it
+//                returnedPartsRecyclerView.isEnabled = it
                 createTransferDocs.isEnabled = it
-                addReturnPart.isEnabled = it
+//                addReturnPart.isEnabled = it
             }
         }
     }

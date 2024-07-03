@@ -6,8 +6,8 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class EngineersOrderItem(
-    val engineerId: String,
+    val engineer: Engineer,
     val orderId: String
 ) : Parcelable {
-    fun toDatabaseModel() = EngineersOrderItemDb(engineerId, orderId)
+    fun toDatabaseModel() = EngineersOrderItemDb(engineer.id, orderId)
 }

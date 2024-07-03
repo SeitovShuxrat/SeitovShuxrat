@@ -15,12 +15,43 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/linearLayoutDriveTimeEnd"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
+            app:layout_constraintStart_toStartOf="@+id/linearLayout6"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout6">
+
+            <TextView
+                android:id="@+id/driveHoursEndTitleTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Моточасы конец: "
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/driveHoursEndTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:text="@{ String.valueOf(viewModel.order.driveTimeEnd) }"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/linearLayout6"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="horizontal"
             android:padding="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/linearLayout2"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
@@ -28,7 +59,7 @@
                 android:id="@+id/driveHoursTitleTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Моточасы: "
+                android:text="Моточасы начало: "
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
